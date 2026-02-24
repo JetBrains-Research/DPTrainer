@@ -1,6 +1,6 @@
 # jbr-fed-dp-training
 
-[![CI](https://github.com/nicaloribock/DPTrainer/actions/workflows/ci.yaml/badge.svg)](https://github.com/nicaloribock/DPTrainer/actions/workflows/ci.yaml)
+[![CI](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml/badge.svg)](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml)
 [![Python 3.11–3.12](https://img.shields.io/badge/python-3.11%E2%80%933.12-blue.svg)](https://www.python.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 

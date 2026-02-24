@@ -1,6 +1,6 @@
 # Examples
 
-Complete, runnable example scripts are available in the [`examples/`](https://github.com/nicaloribock/DPTrainer/tree/main/examples) directory.
+Complete, runnable example scripts are available in the [`examples/`](https://github.com/JetBrains-Research/DPTrainer/tree/main/examples) directory.
 
 ## End-to-End Causal LM Fine-Tuning
 
