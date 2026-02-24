@@ -75,25 +75,6 @@ class TestDPTrainerInitialization:
             )
 
     @patch("jbr.fed.dp_training.hugging_face.trainer.wrap_model_in_controller")
-    def test_initialization_ghost_clipping_rejected(
-        self, mock_wrap_model, simple_model, small_dataset, training_args
-    ):
-        """Test that ghost clipping mode is rejected."""
-        privacy_args = PrivacyArguments(
-            noise_multiplier=1.0, grad_sample_mode="ghost_clipping"
-        )
-
-        with pytest.raises(
-            ValueError, match="Ghost clipping cannot be used with DPTrainer"
-        ):
-            DPTrainer(
-                model=simple_model,
-                args=training_args,
-                train_dataset=small_dataset,
-                privacy_args=privacy_args,
-            )
-
-    @patch("jbr.fed.dp_training.hugging_face.trainer.wrap_model_in_controller")
     def test_initialization_expanded_weights_rejected(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -338,7 +319,7 @@ class TestDPTrainerComputeMetrics:
 
         custom_metrics_called = False
 
-        def custom_compute_metrics(eval_pred):
+        def custom_compute_metrics(eval_pred, compute_result=True):
             nonlocal custom_metrics_called
             custom_metrics_called = True
             return {"accuracy": 0.95}

@@ -134,7 +134,7 @@ class DPTrainer(Trainer):
             self.optimizer = optim_class(
                 optimizer=self.optimizer,
                 noise_multiplier=self.privacy_args.noise_multiplier,
-                expected_batch_size=self.args.per_device_train_batch_size,
+                expected_batch_size=self._train_batch_size * self.args.gradient_accumulation_steps,
                 max_grad_norm=self.privacy_args.per_sample_max_grad_norm,
                 max_clipbound=self.privacy_args.max_clipbound,
                 min_clipbound=self.privacy_args.min_clipbound,
@@ -148,7 +148,7 @@ class DPTrainer(Trainer):
                 optimizer=self.optimizer,
                 noise_multiplier=self.privacy_args.noise_multiplier,
                 max_grad_norm=self.privacy_args.per_sample_max_grad_norm,
-                expected_batch_size=self.args.per_device_train_batch_size,
+                expected_batch_size=self._train_batch_size * self.args.gradient_accumulation_steps,
                 loss_reduction="mean",
             )
 
