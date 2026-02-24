@@ -1,6 +1,6 @@
 site_name: jbr-fed-dp-training
 site_description: Differential privacy training utilities for PyTorch and Hugging Face Transformers, powered by Opacus.
-repo_url: https://github.com/nicaloribock/DPTrainer
+repo_url: https://github.com/JetBrains-Research/DPTrainer
 
 theme:
   name: material
