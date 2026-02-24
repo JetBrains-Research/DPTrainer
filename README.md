@@ -71,7 +71,7 @@ trainer.train()
 
 ## Documentation
 
-For full documentation — including configuration reference, component details, noise calibration, and more — see the [docs](docs/README.md).
+For full documentation — including configuration reference, component details, noise calibration, and more — see the [docs](docs/index.md).
 
 ## License
 
