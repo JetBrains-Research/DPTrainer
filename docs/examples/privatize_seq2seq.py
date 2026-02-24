@@ -13,6 +13,7 @@ from transformers import (
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
 )
+from datasets import load_dataset
 
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
@@ -22,6 +23,19 @@ def main():
     model_name = "t5-small"
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    # Load a dummy dataset for testing
+    raw_dataset = load_dataset("imdb", split="train[:16]")
+
+    def preprocess_function(examples):
+        inputs = ["classify: " + doc for doc in examples["text"]]
+        model_inputs = tokenizer(inputs, max_length=128, truncation=True)
+        # Convert labels to strings for T5 seq2seq generation
+        labels = tokenizer([str(label) for label in examples["label"]], max_length=8, truncation=True)
+        model_inputs["labels"] = labels["input_ids"]
+        return model_inputs
+
+    train_dataset = raw_dataset.map(preprocess_function, batched=True)
 
     privacy_args = PrivacyArguments(
         target_epsilon=8.0,
@@ -37,6 +51,7 @@ def main():
         per_device_train_batch_size=16,
         learning_rate=3e-5,
         report_to="none",
+        remove_unused_columns=False,
     )
 
     # Seq2SeqTrainer now trains with differential privacy automatically
