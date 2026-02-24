@@ -4,10 +4,9 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 from transformers import Trainer
 
-from jbr.fed.dp_training.hugging_face.utils import (
-    privatize_trainer,
-    _change_base_recursively,
-)
+from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
+from jbr.fed.dp_training.hugging_face.utils.privatize_trainer import _change_base_recursively
+
 from jbr.fed.dp_training.hugging_face.trainer import DPTrainer
 from jbr.fed.dp_training import PrivacyArguments
 
