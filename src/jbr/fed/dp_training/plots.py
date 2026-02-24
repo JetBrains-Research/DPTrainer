@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)#adddasdasdzcxzczxcxzc
 
 
 def plot_losses(output_dir: str, log_history):
