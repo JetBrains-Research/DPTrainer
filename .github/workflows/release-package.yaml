@@ -17,7 +17,7 @@ name: Release Package
 on:
   push:
     tags:
-      - "*-v*"
+      - "v*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -48,7 +48,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v4
 
-      - name: Determine package and version
+      - name: Determine version
         id: parse
         shell: bash
         env:
@@ -57,43 +57,30 @@ jobs:
           set -euo pipefail
 
           tag="${TAG_REF_NAME:-}"
-          if [[ "$tag" =~ ^([A-Za-z0-9._-]+)-v([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
-            package="${BASH_REMATCH[1]}"
-            version="${BASH_REMATCH[2]}"
-          fi
-
-          if [[ -z "$package" || -z "$version" ]]; then
-            echo "Missing or invalid package/version; provide inputs or tag <slug>-vX.Y.Z" >&2
+          if [[ "$tag" =~ ^v([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
+            version="${BASH_REMATCH[1]}"
+          else
+            echo "Invalid tag format; expected vX.Y.Z" >&2
             exit 1
           fi
 
-          pkg_dir="packages/$package"
-          if [[ ! -f "$pkg_dir/pyproject.toml" ]]; then
-            echo "Package directory not found: $pkg_dir" >&2
-            exit 1
-          fi
-          
-          echo "package=$package" >> "$GITHUB_OUTPUT"
-          echo "pkg_dir=$pkg_dir"   >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Cache UV
         uses: actions/cache@v4
         with:
           path: /home/runner/.cache/uv
-          key: uv-${{ steps.parse.outputs.package }}-${{ runner.os }}-hash-${{ hashFiles(format('{0}/uv.lock', steps.parse.outputs.pkg_dir)) }}
+          key: uv-${{ runner.os }}-hash-${{ hashFiles('uv.lock') }}
           restore-keys: |
-            uv-${{ steps.parse.outputs.package }}-${{ runner.os }}-
+            uv-${{ runner.os }}-
 
       - name: Build sdist + wheel
-        working-directory: ${{ steps.parse.outputs.pkg_dir }}
         run: |
           rm -rf dist/
           uv version ${{ steps.parse.outputs.version }} --no-sync
           uv build --sdist --wheel
 
       - name: Smoke install built wheel
-        working-directory: ${{ steps.parse.outputs.pkg_dir }}
         run: |
           uv run --with ./dist/*.whl --no-project -- uv pip check
 
@@ -107,7 +94,6 @@ jobs:
           access_token_lifetime: 3600s
 
       - name: Publish artifacts with Twine
-        working-directory: ${{ steps.parse.outputs.pkg_dir }}
         env:
           UV_PUBLISH_USERNAME: "oauth2accesstoken"
           UV_PUBLISH_PASSWORD: ${{ steps.auth.outputs.access_token }}
