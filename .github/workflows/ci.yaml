@@ -1,0 +1,36 @@
+# Copyright (c) 2025 JetBrains s.r.o.
+# Licensed under the MIT License. See LICENSE file in the project root.
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Run tests
+        env:
+          RUN_SLOW_TESTS: 1
+        run: |
+          uv run pytest tests/
