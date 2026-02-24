@@ -1,0 +1,67 @@
+site_name: jbr-fed-dp-training
+site_description: Differential privacy training utilities for PyTorch and Hugging Face Transformers, powered by Opacus.
+repo_url: https://github.com/nicaloribock/DPTrainer
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            show_bases: true
+            members_order: source
+            docstring_style: google
+            merge_init_into_class: true
+            show_root_heading: true
+            show_root_full_path: false
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - API Reference:
+      - Overview: api/index.md
+      - PrivacyArguments: api/privacy_arguments.md
+      - DPTrainer: api/trainer.md
+      - DPCallback: api/callback.md
+      - privatize_trainer: api/privatize_trainer.md
+      - DataCollatorForCausalLM: api/collator.md
+      - EarlyStoppingCallback: api/early_stopping.md
+      - Plotting Utilities: api/plots.md
+      - PyTorch Training Loop: api/pytorch.md
+      - Utility Helpers: api/utils.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
