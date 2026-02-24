@@ -31,8 +31,6 @@ Or with uv:
 uv pip install jbr-fed-dp-training
 ```
 
-During monorepo development, the package is linked as an editable dependency via `[tool.uv.sources]` in `pyproject.toml`.
-
 ## Quick Start
 
 ```python
