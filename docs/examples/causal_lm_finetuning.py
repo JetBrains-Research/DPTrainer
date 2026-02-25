@@ -3,7 +3,7 @@
 Fine-tunes GPT-2 on Wikitext-2 using DPTrainer with RDP accounting.
 
 Usage:
-    python examples/causal_lm_finetuning.py
+    python docs/examples/causal_lm_finetuning.py
 """
 
 from datasets import load_dataset

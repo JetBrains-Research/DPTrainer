@@ -3,7 +3,7 @@
 Uses error rate targets (alpha, beta) instead of epsilon for privacy calibration.
 
 Usage:
-    python examples/ctd_accountant.py
+    python docs/examples/ctd_accountant.py
 """
 
 from datasets import load_dataset
@@ -15,10 +15,13 @@ from jbr.fed.dp_training.hugging_face.patched import DataCollatorForCausalLM
 
 
 def main():
-    model = AutoModelForCausalLM.from_pretrained("gpt2")
-    tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    # Load model and tokenizer
+    model_name = "gpt2"
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
 
+    # Load and tokenize dataset
     dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
 
     def tokenize(examples):
@@ -35,6 +38,7 @@ def main():
         accountant="ctd",
     )
 
+    # Configure training
     training_args = TrainingArguments(
         output_dir="./output/ctd-dp",
         num_train_epochs=5,
@@ -42,9 +46,11 @@ def main():
         learning_rate=5e-5,
         logging_steps=50,
         eval_strategy="epoch",
+        save_strategy="epoch",
         report_to="none",
     )
 
+    # Train with differential privacy
     trainer = DPTrainer(
         model=model,
         args=training_args,
@@ -56,8 +62,10 @@ def main():
 
     trainer.train()
 
+    # Save the model
     model = trainer.detach_model()
     model.save_pretrained("./output/ctd-dp/final")
+    tokenizer.save_pretrained("./output/ctd-dp/final")
 
 
 if __name__ == "__main__":

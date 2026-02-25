@@ -4,27 +4,28 @@ Demonstrates using privatize_trainer to add DP to Seq2SeqTrainer
 without modifying its source code.
 
 Usage:
-    python examples/privatize_seq2seq.py
+    python docs/examples/privatize_seq2seq.py
 """
 
+from datasets import load_dataset
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
 )
-from datasets import load_dataset
 
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
 
 
 def main():
+    # Load model and tokenizer
     model_name = "t5-small"
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    # Load a dummy dataset for testing
+    # Load and preprocess dataset
     raw_dataset = load_dataset("imdb", split="train[:16]")
 
     def preprocess_function(examples):
@@ -37,6 +38,7 @@ def main():
 
     train_dataset = raw_dataset.map(preprocess_function, batched=True)
 
+    # Configure privacy
     privacy_args = PrivacyArguments(
         target_epsilon=8.0,
         per_sample_max_grad_norm=1.0,
@@ -45,24 +47,31 @@ def main():
     # Patch Seq2SeqTrainer to use DPTrainer under the hood
     privatize_trainer(Seq2SeqTrainer, default_privacy_args=privacy_args)
 
+    # Configure training
     training_args = Seq2SeqTrainingArguments(
         output_dir="./output/seq2seq-dp",
         num_train_epochs=3,
         per_device_train_batch_size=16,
         learning_rate=3e-5,
+        save_strategy="epoch",
         report_to="none",
         remove_unused_columns=False,
     )
 
+    # Train with differential privacy
     # Seq2SeqTrainer now trains with differential privacy automatically
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset,  # replace with your dataset
+        train_dataset=train_dataset,
         processing_class=tokenizer,
     )
 
     trainer.train()
+
+    # Save the model
+    model.save_pretrained("./output/seq2seq-dp/final")
+    tokenizer.save_pretrained("./output/seq2seq-dp/final")
 
 
 if __name__ == "__main__":
