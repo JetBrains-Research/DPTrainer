@@ -48,6 +48,14 @@ class DataCollatorForCausalLM(DataCollatorMixin):
 
     # noinspection PyMethodOverriding
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, Any]:
+        """Collate a batch of features.
+
+        Args:
+            features (list[dict[str, Any]]): List of features to collate.
+
+        Returns:
+            dict[str, Any]: Collated batch.
+        """
         features = list(filter(lambda x: sum(x["attention_mask"]) != 0, features))
         batch = pad_without_fast_tokenizer_warning(
             self.tokenizer,
