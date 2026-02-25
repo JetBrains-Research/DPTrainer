@@ -8,6 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 def plot_losses(output_dir: str, log_history):
+    """Plot training and evaluation loss history and save as PNG and CSV.
+
+    Args:
+        output_dir (str): Directory to save the plot and CSV file.
+        log_history: List of log dictionaries from the trainer.
+    """
     train_logs = [log for log in log_history if 'loss' in log and 'step' in log]
     eval_logs = [log for log in log_history if 'eval_loss' in log and 'step' in log]
 
@@ -33,6 +39,13 @@ def plot_losses(output_dir: str, log_history):
 
 
 def plot_privacy_epsilon(output_dir: str, log_history, delta):
+    """Plot privacy epsilon history over training steps and save as PNG.
+
+    Args:
+        output_dir (str): Directory to save the plot.
+        log_history: List of log dictionaries from the trainer.
+        delta: The target delta value used in the plot legend.
+    """
     train_logs = [log for log in log_history if 'eval_privacy_epsilon' in log and 'step' in log]
 
     train_steps = [0] + [log['step'] for log in train_logs]
@@ -51,6 +64,13 @@ def plot_privacy_epsilon(output_dir: str, log_history, delta):
 
 
 def plot_privacy_beta(output_dir: str, log_history, alpha):
+    """Plot privacy beta (trade-off function) history over training steps and save as PNG.
+
+    Args:
+        output_dir (str): Directory to save the plot.
+        log_history: List of log dictionaries from the trainer.
+        alpha: The target alpha (false positive rate) value used in the plot legend.
+    """
     train_logs = [log for log in log_history if 'eval_privacy_beta' in log and 'step' in log]
 
     train_steps = [0] + [log['step'] for log in train_logs]

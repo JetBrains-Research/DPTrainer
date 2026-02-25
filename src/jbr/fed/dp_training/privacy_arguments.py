@@ -10,6 +10,25 @@ logger = logging.get_logger(__name__)
 
 @dataclass
 class PrivacyArguments:
+    """Dataclass for all privacy-related training parameters.
+
+    Attributes:
+        accountant (str): Accountant mechanism to use for DP training.
+        grad_sample_mode (str): Grad sample mode of Opacus.
+        per_sample_max_grad_norm (float): Max per sample clip norm.
+        clipping (str): Clipping strategy.
+        poisson_sampling (bool): Use Poisson sampling, use standard batches otherwise.
+        min_clipbound (float): Min clip bound of the AdaClip algorithm.
+        max_clipbound (float): Max clip bound of the AdaClip algorithm.
+        clipbound_learning_rate (float): Learning rate of the AdaClip algorithm.
+        target_unclipped_quantile (float): Target fraction of unclipped samples per batch of the AdaClip algorithm.
+        unclipped_num_std (float): Standard deviation of the unclipped number noise of the AdaClip algorithm.
+        noise_multiplier (Optional[float]): Noise multiplier for DP training.
+        target_epsilon (Optional[float]): Target epsilon at end of training (mutually exclusive with noise multiplier).
+        target_delta (Optional[float]): Target delta, defaults to 1/N.
+        target_alpha (Optional[float]): Target false positive rate for beta search.
+        target_beta (Optional[float]): Target false negative rate.
+    """
     accountant: str = field(default="rdp", metadata={"help": "Accountant mechanism to use for DP training"})
     grad_sample_mode: str = field(default="hooks", metadata={"help": "Grad sample mode of Opacus"})
     per_sample_max_grad_norm: float = field(default=0.5, metadata={"help": "Max per sample clip norm"})
@@ -31,9 +50,24 @@ class PrivacyArguments:
 
     @classmethod
     def low_privacy(cls):
+        """Create a low-privacy configuration with no noise and no Poisson sampling.
+
+        Returns:
+            PrivacyArguments: A PrivacyArguments instance with minimal privacy guarantees.
+        """
         return cls(accountant="rdp", noise_multiplier=0.0, poisson_sampling=False)
 
     def precalculate(self, num_samples: int, sample_rate: float, steps: int):
+        """Precalculate the noise multiplier based on target privacy parameters.
+
+        Sets `target_delta` to 1/N if not provided, then computes `noise_multiplier`
+        from `target_epsilon` or `target_beta` if `noise_multiplier` is not already set.
+
+        Args:
+            num_samples (int): Total number of samples in the training dataset.
+            sample_rate (float): The sampling rate of each batch.
+            steps (int): Total number of training steps.
+        """
         if self.target_delta is None:
             self.target_delta = 1.0 / num_samples
 

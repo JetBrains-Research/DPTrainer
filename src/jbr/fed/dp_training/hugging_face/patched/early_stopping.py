@@ -1,6 +1,12 @@
 from transformers import EarlyStoppingCallback as HFEarlyStoppingCallback
 
 class EarlyStoppingCallback(HFEarlyStoppingCallback):
+    """Checkpoint-aware early stopping callback.
+
+    Extends HuggingFace's `EarlyStoppingCallback` to also check the patience counter
+    at the beginning of training, so that training stops immediately when resuming
+    from a checkpoint that already exceeded the patience.
+    """
     def on_train_begin(self, args, state, control, **kwargs):
         super().on_train_begin(args, state, control, **kwargs)
         if self.early_stopping_patience_counter >= self.early_stopping_patience:

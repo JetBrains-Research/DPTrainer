@@ -42,6 +42,25 @@ def custom_training_loop(model: Module,
                          privacy_arguments: PrivacyArguments = None,
                          model_input_names: List[str] = None,
                          early_stopping_patience: Optional[int] = None):
+    """Run a custom PyTorch training loop with differential privacy support.
+
+    Automatically detects available GPUs and uses distributed training when
+    multiple GPUs are present. Supports checkpointing, early stopping, and
+    privacy budget enforcement.
+
+    Args:
+        model (Module): The PyTorch model to train.
+        tokenizer (PreTrainedTokenizerBase): The tokenizer for data collation.
+        train_dataset (Union[Dataset, IterableDataset]): The training dataset.
+        eval_dataset (Union[Dataset, IterableDataset]): The evaluation dataset.
+        training_arguments (TrainingArgumentsProtocol): Training configuration arguments.
+        privacy_arguments (PrivacyArguments): Privacy configuration. Defaults to low-privacy if not provided.
+        model_input_names (List[str]): List of model input field names. Defaults to ["input_ids", "attention_mask", "labels"].
+        early_stopping_patience (Optional[int]): Number of evaluations with no improvement before stopping.
+
+    Returns:
+        tuple: A tuple of (log_history, accountant) containing the training log history and the privacy accountant.
+    """
     gpu_count = torch.cuda.device_count()
 
     if gpu_count > 1:
