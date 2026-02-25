@@ -12,13 +12,11 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DataCollatorForCausalLM(DataCollatorMixin):
-    """Data collator that dynamically pads the inputs received and adds labels shifted by one element to the left.
+    """Data collator that will dynamically pad the inputs received and adds labels shifted by one element to the left.
 
     Args:
         tokenizer ([`PreTrainedTokenizer`] or [`PreTrainedTokenizerFast`]):
             The tokenizer used for encoding the data.
-        tokenize (`bool` or `str`, *optional*, defaults to `False`):
-            Whether to tokenize the inputs before collating.
         padding (`bool`, `str` or [`~utils.PaddingStrategy`], *optional*, defaults to `True`):
             Select a strategy to pad the returned sequences (according to the model's padding side and padding index)
             among:
@@ -35,7 +33,7 @@ class DataCollatorForCausalLM(DataCollatorMixin):
             The type of Tensor to return. Allowable values are "np", "pt" and "tf".
 
     Returns:
-        A dictionary of a padded input_ids tensor, attention_mask tensor, and labels tensor shifted by one
+        A dataset dictionary of a padded input_ids tensor, attention_mask tensor, and labels tensor shifted by one
         element to inputs.
     """
 
@@ -48,14 +46,6 @@ class DataCollatorForCausalLM(DataCollatorMixin):
 
     # noinspection PyMethodOverriding
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, Any]:
-        """Collate a batch of features.
-
-        Args:
-            features (list[dict[str, Any]]): List of features to collate.
-
-        Returns:
-            dict[str, Any]: Collated batch.
-        """
         features = list(filter(lambda x: sum(x["attention_mask"]) != 0, features))
         batch = pad_without_fast_tokenizer_warning(
             self.tokenizer,
