@@ -100,4 +100,4 @@ Returns the serializable state of the callback (for checkpoint saving/restoring)
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/hugging_face/callback.py`](../../src/jbr/fed/dp_training/hugging_face/callback.py)
+> **Source:** [`src/jbr/fed/dp_training/hugging_face/callback.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/hugging_face/callback.py)

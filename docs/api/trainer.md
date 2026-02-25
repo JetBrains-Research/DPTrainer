@@ -70,4 +70,4 @@ Detach the model from the controller and return the model. Cleans up resources o
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/hugging_face/trainer.py`](../../src/jbr/fed/dp_training/hugging_face/trainer.py)
+> **Source:** [`src/jbr/fed/dp_training/hugging_face/trainer.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/hugging_face/trainer.py)

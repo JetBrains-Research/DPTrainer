@@ -25,7 +25,7 @@ Converts an `IterableDataset` (or any `Dataset`) to a static in-memory `Dataset`
 
 **Returns:** A `datasets.Dataset` with all samples materialized in memory.
 
-> **Source:** [`src/jbr/fed/dp_training/utils/convert_to_static.py`](../../src/jbr/fed/dp_training/utils/convert_to_static.py)
+> **Source:** [`src/jbr/fed/dp_training/utils/convert_to_static.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/utils/convert_to_static.py)
 
 ---
 
@@ -55,4 +55,4 @@ Recursively sets the `loss_function` property on all models in the wrapper hiera
 
 **Raises:** `ValueError` if maximum depth is reached or a circular reference is detected.
 
-> **Source:** [`src/jbr/fed/dp_training/utils/set_loss_function.py`](../../src/jbr/fed/dp_training/utils/set_loss_function.py)
+> **Source:** [`src/jbr/fed/dp_training/utils/set_loss_function.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/utils/set_loss_function.py)

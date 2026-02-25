@@ -73,4 +73,4 @@ PyTorch-centric training configuration dataclass with HuggingFace `TrainingArgum
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/pytorch/loop.py`](../../src/jbr/fed/dp_training/pytorch/loop.py), [`src/jbr/fed/dp_training/pytorch/training_args.py`](../../src/jbr/fed/dp_training/pytorch/training_args.py)
+> **Source:** [`src/jbr/fed/dp_training/pytorch/loop.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/pytorch/loop.py), [`src/jbr/fed/dp_training/pytorch/training_args.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/pytorch/training_args.py)

@@ -33,4 +33,4 @@ privatize_trainer(Seq2SeqTrainer)
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/hugging_face/utils/privatize_trainer.py`](../../src/jbr/fed/dp_training/hugging_face/utils/privatize_trainer.py)
+> **Source:** [`src/jbr/fed/dp_training/hugging_face/utils/privatize_trainer.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/hugging_face/utils/privatize_trainer.py)

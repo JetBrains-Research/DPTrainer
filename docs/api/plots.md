@@ -59,4 +59,4 @@ Plots the privacy β history over training steps and saves a PNG chart (`eval_pr
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/plots.py`](../../src/jbr/fed/dp_training/plots.py)
+> **Source:** [`src/jbr/fed/dp_training/plots.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/plots.py)

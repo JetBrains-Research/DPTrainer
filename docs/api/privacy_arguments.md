@@ -62,4 +62,4 @@ Auto-calculates the noise multiplier based on the privacy target. Sets `target_d
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/privacy_arguments.py`](../../src/jbr/fed/dp_training/privacy_arguments.py)
+> **Source:** [`src/jbr/fed/dp_training/privacy_arguments.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/privacy_arguments.py)

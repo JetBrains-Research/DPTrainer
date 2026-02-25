@@ -16,4 +16,4 @@ All other behavior is inherited from `transformers.EarlyStoppingCallback`.
 
 ---
 
-> **Source:** [`src/jbr/fed/dp_training/hugging_face/patched/early_stopping.py`](../../src/jbr/fed/dp_training/hugging_face/patched/early_stopping.py)
+> **Source:** [`src/jbr/fed/dp_training/hugging_face/patched/early_stopping.py`](https://github.com/JetBrains-Research/DPTrainer/blob/main/src/jbr/fed/dp_training/hugging_face/patched/early_stopping.py)

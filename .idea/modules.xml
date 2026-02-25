@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/DPTrainer.iml" filepath="$PROJECT_DIR$/.idea/DPTrainer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/jbr-fed-dp-training.iml" filepath="$PROJECT_DIR$/.idea/jbr-fed-dp-training.iml" />
     </modules>
   </component>
 </project>
