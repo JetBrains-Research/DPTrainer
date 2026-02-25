@@ -30,16 +30,16 @@ class DPTrainer(Trainer):
             callbacks: Optional[list[TrainerCallback]] = None,
             **kwargs
     ):
-        """Hugging Face Trainer with Differential Privacy support.
+        """Huggingface Trainer with Differential Privacy support.
 
         Args:
-            model (Union[PreTrainedModel, nn.Module]): Model to train.
+            model (Union[modeling_utils.PreTrainedModel, torch.nn.modules.module.Module]): Model to train.
             args (TrainingArguments): Training arguments.
-            train_dataset (Union[datasets.Dataset, torch.utils.data.Dataset]): Training dataset.
-            privacy_args (PrivacyArguments): Privacy arguments for differential private training.
-            compute_metrics (Optional[Callable]): Custom evaluation metrics.
+            train_dataset (torch.utils.data.dataset.Dataset): Training dataset.
+            privacy_args (Optional[PrivacyArguments]): Privacy arguments for differential private training.
+            compute_metrics (Optional[Callable[[EvalPrediction], dict]]): Custom evaluation metrics.
             callbacks (Optional[list[TrainerCallback]]): Training callbacks.
-            **kwargs: Additional keyword arguments passed to Trainer.
+            kwargs: Additional keyword arguments passed to Trainer.
         """
         self.privacy_args = privacy_args or getattr(self, "default_privacy_args", None)
         if self.privacy_args is None:
@@ -116,11 +116,6 @@ class DPTrainer(Trainer):
             set_loss_function_recursively(model, criterion)
 
     def create_optimizer(self):
-        """Create a differentially private optimizer wrapping the base optimizer.
-
-        Returns:
-            DPOptimizer: The differentially private optimizer.
-        """
         if self.optimizer:
             return self.optimizer
 
@@ -160,11 +155,6 @@ class DPTrainer(Trainer):
         return self.optimizer
 
     def get_train_dataloader(self) -> torch.utils.data.DataLoader:
-        """Create a training dataloader with privacy-compatible batching.
-
-        Returns:
-            torch.utils.data.DataLoader: The training dataloader with optional Poisson sampling and batch memory management.
-        """
         data_loader = self._get_dataloader(
             dataset=self.train_dataset,
             description="Training",
