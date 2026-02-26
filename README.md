@@ -1,4 +1,4 @@
-# jbr-fed-dp-training
+# DPTrainer
 
 [![CI](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml/badge.svg)](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml)
 [![Python 3.11–3.12](https://img.shields.io/badge/python-3.11%E2%80%933.12-blue.svg)](https://www.python.org/)
@@ -8,7 +8,7 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 
 ## Overview
 
-`jbr-fed-dp-training` provides `DPTrainer` — a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy (DP) guarantees via DP-SGD. It handles per-sample gradient clipping, noise injection, privacy budget accounting, and automatic noise calibration so you can fine-tune language models with formal privacy guarantees.
+`DPTrainer` provides `DPTrainer` — a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy (DP) guarantees via DP-SGD. It handles per-sample gradient clipping, noise injection, privacy budget accounting, and automatic noise calibration so you can fine-tune language models with formal privacy guarantees.
 
 ### Key Features
 
@@ -26,21 +26,21 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 ## Installation
 
 ```bash
-pip install jbr-fed-dp-training
+pip install DPTrainer
 ```
 
 Or with uv:
 
 ```bash
-uv pip install jbr-fed-dp-training
+uv pip install DPTrainer
 ```
 
 ## Quick Start
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face import DPTrainer
 
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")

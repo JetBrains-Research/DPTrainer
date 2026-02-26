@@ -16,8 +16,8 @@ from transformers import (
 )
 from peft import get_peft_model, LoraConfig, PeftModel
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face.trainer import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face.trainer import DPTrainer
 
 
 # Skip slow tests by default

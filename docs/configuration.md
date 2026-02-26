@@ -41,7 +41,7 @@ The noise multiplier is determined automatically based on the privacy target you
 ### Example: Epsilon-Based Calibration
 
 ```python
-from jbr.fed.dp_training import PrivacyArguments
+from dptrainer import PrivacyArguments
 
 # Noise multiplier is auto-calculated to achieve ε=8.0
 privacy_args = PrivacyArguments(
@@ -55,7 +55,7 @@ privacy_args = PrivacyArguments(
 ### Example: Beta-Based Calibration (CTD Accountant)
 
 ```python
-from jbr.fed.dp_training import PrivacyArguments
+from dptrainer import PrivacyArguments
 
 # Use Connect-the-Dots accountant with error rate targets
 privacy_args = PrivacyArguments(
@@ -69,7 +69,7 @@ privacy_args = PrivacyArguments(
 ### Example: Explicit Noise Multiplier
 
 ```python
-from jbr.fed.dp_training import PrivacyArguments
+from dptrainer import PrivacyArguments
 
 # Set the noise multiplier directly — no auto-calibration
 privacy_args = PrivacyArguments(

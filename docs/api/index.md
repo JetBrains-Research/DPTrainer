@@ -1,6 +1,6 @@
 # API Reference
 
-Auto-generated documentation for all public classes and functions in `jbr-fed-dp-training`.
+Auto-generated documentation for all public classes and functions in `DPTrainer`.
 
 ## Core
 

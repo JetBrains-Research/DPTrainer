@@ -12,8 +12,8 @@ Fine-tune GPT-2 on Wikitext-2 with differential privacy:
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face import DPTrainer
 
 
 def main():
@@ -93,8 +93,8 @@ from transformers import (
     Seq2SeqTrainingArguments,
 )
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face.utils import privatize_trainer
 
 
 def main():
@@ -166,8 +166,8 @@ Train with the Connect-the-Dots accountant using error rate targets instead of e
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face import DPTrainer
 
 
 def main():
@@ -238,8 +238,8 @@ Use adaptive clipping (AdaClip) to dynamically adjust the clipping bound during 
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face import DPTrainer
 
 
 def main():

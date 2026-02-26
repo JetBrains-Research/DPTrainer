@@ -6,8 +6,8 @@
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face import DPTrainer
 
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
@@ -51,8 +51,8 @@ Use `privatize_trainer` to add differential privacy to any `Trainer` subclass wi
 
 ```python
 from trl import DPOTrainer
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face.utils import privatize_trainer
 
 privacy_args = PrivacyArguments(
     target_epsilon=8.0,

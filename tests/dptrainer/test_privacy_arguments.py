@@ -1,6 +1,6 @@
 """Tests for PrivacyArguments dataclass."""
 
-from jbr.fed.dp_training import PrivacyArguments
+from dptrainer import PrivacyArguments
 
 
 class TestPrivacyArgumentsPrecalculate:

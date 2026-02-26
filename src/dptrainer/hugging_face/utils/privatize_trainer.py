@@ -3,7 +3,7 @@ from functools import wraps
 from opacus.grad_sample import AbstractGradSampleModule
 from transformers import Trainer
 
-from jbr.fed.dp_training.hugging_face import DPTrainer
+from dptrainer.hugging_face import DPTrainer
 
 
 
@@ -20,7 +20,7 @@ def privatize_trainer(cls, default_privacy_args = None):
         default_privacy_args: Privacy arguments to be passed to cls to use as a default.
     Example:
         >>> from transformers import Seq2SeqTrainer
-        >>> from jbr.fed.dp_training.hugging_face.utils import privatize_trainer
+        >>> from dptrainer.hugging_face.utils import privatize_trainer
         >>>
         >>> privatize_trainer(Seq2SeqTrainer)
         # Seq2SeqTrainer now inherits from DPTrainer instead of Trainer

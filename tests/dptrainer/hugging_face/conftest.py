@@ -6,7 +6,7 @@ from torch import nn
 from torch.utils.data import Dataset
 from transformers import TrainingArguments
 
-from jbr.fed.dp_training import PrivacyArguments
+from dptrainer import PrivacyArguments
 
 
 class SimpleModel(nn.Module):

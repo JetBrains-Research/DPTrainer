@@ -468,7 +468,7 @@ wheels = [
 ]
 
 [[package]]
-name = "jbr-fed-dp-training"
+name = "DPTrainer"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [

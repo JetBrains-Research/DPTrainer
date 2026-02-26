@@ -3,7 +3,7 @@ import logging
 from opacus.accountants import register_accountant
 from riskcal import CTDAccountant
 
-from jbr.fed.dp_training.privacy_arguments import PrivacyArguments
+from dptrainer.privacy_arguments import PrivacyArguments
 
 __all__ = ["PrivacyArguments"]
 

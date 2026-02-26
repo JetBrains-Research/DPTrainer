@@ -13,8 +13,8 @@ from transformers import (
     Trainer, logging, modeling_utils, TrainingArguments, PreTrainedModel, TrainerCallback
 )
 
-from jbr.fed.dp_training import PrivacyArguments
-from jbr.fed.dp_training.hugging_face.callback import DPCallback
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face.callback import DPCallback
 
 logger = logging.get_logger(__name__)
 

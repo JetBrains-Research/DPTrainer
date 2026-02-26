@@ -1,6 +1,6 @@
 # DPTrainer
 
-::: jbr.fed.dp_training.hugging_face.trainer.DPTrainer
+::: dptrainer.hugging_face.trainer.DPTrainer
     options:
       show_source: true
       separate_signature: true

@@ -1,10 +1,10 @@
-# jbr-fed-dp-training
+# DPTrainer
 
 Differential privacy training utilities for PyTorch and Hugging Face Transformers, powered by [Opacus](https://opacus.ai/).
 
 ## Overview
 
-`jbr-fed-dp-training` provides `DPTrainer` — a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy (DP) guarantees via DP-SGD. It handles per-sample gradient clipping, noise injection, privacy budget accounting, and automatic noise calibration so you can fine-tune language models with formal privacy guarantees.
+`DPTrainer` provides `DPTrainer` — a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy (DP) guarantees via DP-SGD. It handles per-sample gradient clipping, noise injection, privacy budget accounting, and automatic noise calibration so you can fine-tune language models with formal privacy guarantees.
 
 ### Key Features
 
@@ -22,13 +22,13 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 ## Installation
 
 ```bash
-pip install jbr-fed-dp-training
+pip install DPTrainer
 ```
 
 Or with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv pip install jbr-fed-dp-training
+uv pip install DPTrainer
 ```
 
 ## What's Next?
