@@ -1,54 +1,47 @@
-def set_loss_function_recursively(model, new_loss_function, max_depth=10):
+def _unwrap_peft(model):
+    """Unwrap PEFT wrappers if present."""
+    try:
+        from peft import PeftModel
+        if isinstance(model, PeftModel):
+            return model.get_base_model()
+    except ImportError:
+        pass
+    if hasattr(model, 'base_model') and hasattr(model.base_model, 'model'):
+        if hasattr(model, '_peft_config') or type(model).__name__.startswith('Peft'):
+            return model.base_model.model
+    return model
+
+
+def set_loss_function(model, new_loss_function):
     """
-    Recursively set the loss_function property on all models in the wrapper hierarchy.
+    Set loss_function on the underlying task model only.
 
-    This function handles various model wrappers like:
-    - GradSampleModule (has _module attribute)
-    - PeftModelForCausalLM (has .base_model attribute)
-    - LoraModel (has .model attribute)
-    - DistributedDataParallel (has .module attribute)
+    Unwraps through known wrapper layers in order:
+      1. GradSampleModule (_module)
+      2. DDP / DataParallel (module) — via unwrap_model
+      3. PEFT wrappers (base_model.model) — via _unwrap_peft
 
-    Args:
-        model: The wrapped model to process
-        new_loss_function: The new loss function to set
-        max_depth (int): Maximum recursion depth to prevent infinite loops
-
-    Raises:
-        ValueError: If maximum depth is reached or circular reference is detected
+    Then sets loss_function on the final PreTrainedModel.
     """
-    visited = set()
+    from transformers.modeling_utils import unwrap_model, PreTrainedModel
 
-    def _set_recursive(current_model, depth=0):
+    # Unwrap Opacus GradSampleModule
+    if hasattr(model, '_module'):
+        model = model._module
 
-        if depth >= max_depth:
-            raise ValueError(f"Maximum unwrapping depth {max_depth} reached")
+    # Unwrap distributed wrappers
+    model = unwrap_model(model)
 
-        model_id = id(current_model)
-        if model_id in visited:
-            return
-        visited.add(model_id)
+    # Unwrap PEFT
+    model = _unwrap_peft(model)
 
-        # Set loss_function if it exists on the current model
-        if hasattr(current_model, 'loss_function'):
-            current_model.loss_function = new_loss_function
-
-        # Continue recursively through wrapper attributes
-        wrapper_attrs = [
-            '_module',  # GradSampleModule
-            'base_model',  # PeftModelForCausalLM, PEFT models
-            'model',  # LoraModel
-            'module',  # DistributedDataParallel, DataParallel
-        ]
-
-        for attr_name in wrapper_attrs:
-            if hasattr(current_model, attr_name):
-                wrapped_model = getattr(current_model, attr_name)
-                # Make sure it's actually a model object and not None
-                if wrapped_model is not None and hasattr(wrapped_model, '__class__'):
-                    try:
-                        _set_recursive(wrapped_model, depth + 1)
-                    except (ValueError, AttributeError):
-                        continue
-
-    _set_recursive(model)
-    return
+    # Final safety: only set on PreTrainedModel instances
+    if isinstance(model, PreTrainedModel):
+        model.loss_function = new_loss_function
+    elif hasattr(model, 'loss_function'):
+        model.loss_function = new_loss_function
+    else:
+        raise ValueError(
+            f"Could not find a model with loss_function after unwrapping. "
+            f"Final model type: {type(model).__name__}"
+        )
