@@ -33,4 +33,4 @@ jobs:
           uv pip install --system mkdocs-material mkdocstrings[python]
 
       - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+        run: uv run zensical gh-deploy --force
