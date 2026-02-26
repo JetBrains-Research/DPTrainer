@@ -32,6 +32,7 @@ plugins:
             show_source: true
             show_bases: true
             members_order: source
+            filters: ["!^_[^_]"]
             docstring_style: google
             merge_init_into_class: true
             show_root_heading: true

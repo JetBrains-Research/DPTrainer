@@ -3,6 +3,7 @@
 ::: jbr.fed.dp_training.hugging_face.callback.DPCallback
     options:
       show_source: true
+      separate_signature: true
       members:
         - __init__
         - get_optimizer_callback
