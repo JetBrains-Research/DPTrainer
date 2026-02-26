@@ -17,7 +17,7 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 - **Privacy budget early stopping** — training automatically stops when the privacy budget (ε or β) is exhausted.
 - **Checkpoint-aware accounting** — privacy accountant state is saved and restored with checkpoints for correct budget tracking across restarts.
 - **`privatize_trainer` utility** — patch _any_ `Trainer`-based class (e.g., `DPOTrainer`, `Seq2SeqTrainer`) to use differential privacy without modifying its source code.
-- **Patched components** — includes `DataCollatorForCausalLM` and a checkpoint-aware `EarlyStoppingCallback` compatible with DP training.
+- **Patched components** — includes a checkpoint-aware `EarlyStoppingCallback` compatible with DP training.
 
 ## Installation
 

@@ -5,10 +5,9 @@
 `DPTrainer` is a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy guarantees.
 
 ```python
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face import DPTrainer
-from jbr.fed.dp_training.hugging_face.patched import DataCollatorForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
@@ -36,7 +35,7 @@ trainer = DPTrainer(
     args=training_args,
     train_dataset=train_dataset,
     privacy_args=privacy_args,
-    data_collator=DataCollatorForCausalLM(tokenizer=tokenizer),
+    data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
 )
 
 trainer.train()

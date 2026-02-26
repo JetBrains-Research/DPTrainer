@@ -10,11 +10,10 @@ Fine-tune GPT-2 on Wikitext-2 with differential privacy:
 """docs/examples/causal_lm_finetuning.py"""
 
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face import DPTrainer
-from jbr.fed.dp_training.hugging_face.patched import DataCollatorForCausalLM
 
 
 def main():
@@ -64,7 +63,7 @@ def main():
         train_dataset=tokenized["train"],
         eval_dataset=tokenized["validation"],
         privacy_args=privacy_args,
-        data_collator=DataCollatorForCausalLM(tokenizer=tokenizer),
+        data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
     )
 
     trainer.train()
@@ -165,11 +164,10 @@ Train with the Connect-the-Dots accountant using error rate targets instead of e
 """docs/examples/ctd_accountant.py"""
 
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face import DPTrainer
-from jbr.fed.dp_training.hugging_face.patched import DataCollatorForCausalLM
 
 
 def main():
@@ -215,7 +213,7 @@ def main():
         train_dataset=tokenized["train"],
         eval_dataset=tokenized["validation"],
         privacy_args=privacy_args,
-        data_collator=DataCollatorForCausalLM(tokenizer=tokenizer),
+        data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
     )
 
     trainer.train()
@@ -238,11 +236,10 @@ Use adaptive clipping (AdaClip) to dynamically adjust the clipping bound during 
 """docs/examples/adaptive_clipping.py"""
 
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 
 from jbr.fed.dp_training import PrivacyArguments
 from jbr.fed.dp_training.hugging_face import DPTrainer
-from jbr.fed.dp_training.hugging_face.patched import DataCollatorForCausalLM
 
 
 def main():
@@ -291,7 +288,7 @@ def main():
         train_dataset=tokenized["train"],
         eval_dataset=tokenized["validation"],
         privacy_args=privacy_args,
-        data_collator=DataCollatorForCausalLM(tokenizer=tokenizer),
+        data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
     )
 
     trainer.train()

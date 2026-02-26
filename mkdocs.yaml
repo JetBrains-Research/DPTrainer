@@ -49,10 +49,7 @@ nav:
       - DPTrainer: api/trainer.md
       - DPCallback: api/callback.md
       - privatize_trainer: api/privatize_trainer.md
-      - DataCollatorForCausalLM: api/collator.md
       - EarlyStoppingCallback: api/early_stopping.md
-      - Plotting Utilities: api/plots.md
-      - PyTorch Training Loop: api/pytorch.md
       - Utility Helpers: api/utils.md
 
 markdown_extensions:
