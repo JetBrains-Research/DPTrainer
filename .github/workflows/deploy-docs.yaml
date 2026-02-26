@@ -29,8 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install the project and mkdocs dependencies
-          uv pip install --system -e .
-          uv pip install --system mkdocs-material mkdocstrings[python]
+          uv sync --group docs
 
       - name: Deploy to GitHub Pages
         run: uv run zensical gh-deploy --force

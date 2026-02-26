@@ -36,4 +36,4 @@ uv pip install jbr-fed-dp-training
 - [Getting Started](getting-started.md) — quick-start guide with code examples.
 - [Configuration](configuration.md) — full reference for `PrivacyArguments` and noise calibration.
 - [Examples](examples.md) — end-to-end training scripts.
-- [API Reference](api/index.md) — auto-generated documentation for all public classes and functions.
+- [API Reference](https://JetBrains-Research.github.io/DPTrainer/). — auto-generated documentation for all public classes and functions.
