@@ -3,15 +3,13 @@ name: Deploy Zensical Docs
 on:
   push:
     branches:
-      - main # Or your default branch name
+      - main
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: "pages"
   cancel-in-progress: false
