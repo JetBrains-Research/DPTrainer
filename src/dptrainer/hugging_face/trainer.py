@@ -12,8 +12,9 @@ from torch import nn
 from transformers import (
     Trainer, logging, modeling_utils, TrainingArguments, PreTrainedModel, TrainerCallback
 )
-
-from dptrainer import PrivacyArguments
+from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
+from dptrainer.utils import set_loss_function
+from dptrainer.privacy_arguments import PrivacyArguments
 from dptrainer.hugging_face.callback import DPCallback
 
 logger = logging.get_logger(__name__)
@@ -113,7 +114,7 @@ class DPTrainer(Trainer):
                                                    self.create_optimizer(),
                                                    criterion,
                                                    loss_reduction="mean")
-            set_loss_function_recursively(model, criterion)
+            set_loss_function(model, criterion)
 
     def create_optimizer(self):
         """Create a differentially private optimizer wrapping the base optimizer.
