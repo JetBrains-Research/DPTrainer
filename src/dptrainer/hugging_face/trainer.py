@@ -60,6 +60,8 @@ class DPTrainer(Trainer):
                           "Accountant states will not be restored from the checkpoint leading to the incorrect "
                           "privacy budget estimates. Setting restore_callback_states_from_checkpoint to True")
             args.restore_callback_states_from_checkpoint = True
+        if args.world_size > 1:
+            raise ValueError("Distributed training is not supported by DPTrainer.")
 
         sample_rate = args.per_device_train_batch_size * args.gradient_accumulation_steps / dataset_size
 

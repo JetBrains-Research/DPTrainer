@@ -117,6 +117,24 @@ class TestDPTrainerInitialization:
 
         assert training_args.restore_callback_states_from_checkpoint is True
 
+    @patch("dptrainer.hugging_face.trainer.wrap_model_in_controller")
+    def test_initialization_distributed_training_rejected(
+        self, mock_wrap_model, simple_model, small_dataset, training_args
+    ):
+        """Test that distributed training is rejected."""
+        privacy_args = PrivacyArguments(noise_multiplier=1.0)
+
+        with patch.object(type(training_args), "world_size", new_callable=lambda: property(lambda self: 2)):
+            with pytest.raises(
+                ValueError, match="Distributed training is not supported by DPTrainer"
+            ):
+                DPTrainer(
+                    model=simple_model,
+                    args=training_args,
+                    train_dataset=small_dataset,
+                    privacy_args=privacy_args,
+                )
+
 
 class TestDPTrainerCreateOptimizer:
     """Test optimizer creation."""
