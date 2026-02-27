@@ -1,11 +1,17 @@
 """Tests for utility functions."""
 
+import warnings
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 from transformers import Trainer
 
 from dptrainer.hugging_face.utils import privatize_trainer
-from dptrainer.hugging_face.utils.privatize_trainer import _change_base_recursively
+from dptrainer.hugging_face.utils.privatize_trainer import (
+    _change_base_recursively,
+    _warn_ghost_clipping_overrides,
+)
+
+from opacus.optimizers import DPOptimizer
 
 from dptrainer.hugging_face.trainer import DPTrainer
 from dptrainer import PrivacyArguments
@@ -30,6 +36,7 @@ class TestPrivatizeTrainer:
         # After privatization
         assert DPTrainer in CustomTrainer.__bases__
         assert Trainer not in CustomTrainer.__bases__
+
 
     def test_privatize_trainer_with_default_privacy_args(self):
         """Test that default_privacy_args is set correctly."""
@@ -197,5 +204,193 @@ class TestChangeBaseRecursively:
         assert NewBase in Child.__bases__
         assert OldBase not in Child.__bases__
         assert len(Child.__bases__) == 2
+
+
+class TestWarnGhostClippingOverrides:
+    """Test _warn_ghost_clipping_overrides static analysis warnings."""
+
+    def test_no_warning_for_clean_subclass(self):
+        """No warnings when the subclass does not override compute_loss or training_step."""
+
+        class CleanTrainer(Trainer):
+            pass
+
+        _change_base_recursively(CleanTrainer, Trainer, DPTrainer)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _warn_ghost_clipping_overrides(CleanTrainer)
+            assert len(w) == 0
+
+    def test_warning_for_compute_loss_override(self):
+        """Warns when the subclass overrides compute_loss."""
+
+        class SneakyTrainer(Trainer):
+            def compute_loss(self, model, inputs, **kwargs):
+                return super().compute_loss(model, inputs, **kwargs)
+
+        _change_base_recursively(SneakyTrainer, Trainer, DPTrainer)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _warn_ghost_clipping_overrides(SneakyTrainer)
+            assert len(w) == 1
+            assert "compute_loss" in str(w[0].message)
+
+    def test_warning_for_training_step_override(self):
+        """Warns when the subclass overrides training_step."""
+
+        class SneakyTrainer(Trainer):
+            def training_step(self, model, inputs, num_items_in_batch=None):
+                return super().training_step(model, inputs, num_items_in_batch)
+
+        _change_base_recursively(SneakyTrainer, Trainer, DPTrainer)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _warn_ghost_clipping_overrides(SneakyTrainer)
+            assert len(w) == 1
+            assert "training_step" in str(w[0].message)
+
+    def test_warning_for_both_overrides(self):
+        """Warns separately for both compute_loss and training_step."""
+
+        class DoubleSneakyTrainer(Trainer):
+            def compute_loss(self, model, inputs, **kwargs):
+                pass
+
+            def training_step(self, model, inputs, num_items_in_batch=None):
+                pass
+
+        _change_base_recursively(DoubleSneakyTrainer, Trainer, DPTrainer)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _warn_ghost_clipping_overrides(DoubleSneakyTrainer)
+            assert len(w) == 2
+            messages = {str(m.message) for m in w}
+            assert any("compute_loss" in m for m in messages)
+            assert any("training_step" in m for m in messages)
+
+    def test_privatize_trainer_emits_warning_with_ghost_clipping(self):
+        """privatize_trainer emits the warning when ghost clipping is enabled."""
+
+        class SneakyTrainer(Trainer):
+            def compute_loss(self, model, inputs, **kwargs):
+                pass
+
+        ghost_args = PrivacyArguments(noise_multiplier=1.0, grad_sample_mode="ghost")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            privatize_trainer(SneakyTrainer, default_privacy_args=ghost_args)
+            ghost_warnings = [x for x in w if "ghost-clipping" in str(x.message)]
+            assert len(ghost_warnings) == 1
+
+    def test_privatize_trainer_no_warning_without_ghost_clipping(self):
+        """privatize_trainer does NOT emit the warning when ghost clipping is not enabled."""
+
+        class SneakyTrainer(Trainer):
+            def compute_loss(self, model, inputs, **kwargs):
+                pass
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            privatize_trainer(SneakyTrainer)
+            ghost_warnings = [x for x in w if "ghost-clipping" in str(x.message)]
+            assert len(ghost_warnings) == 0
+
+    def test_privatize_dpo_trainer_emits_warning_with_ghost_clipping(self):
+        """Privatizing trl.DPOTrainer emits a warning when ghost clipping is enabled."""
+        from trl import DPOTrainer
+
+        ghost_args = PrivacyArguments(noise_multiplier=1.0, grad_sample_mode="ghost")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            privatize_trainer(DPOTrainer, default_privacy_args=ghost_args)
+            ghost_warnings = [x for x in w if "ghost-clipping" in str(x.message)]
+            assert len(ghost_warnings) >= 1
+            assert any("compute_loss" in str(gw.message) for gw in ghost_warnings)
+
+    def test_privatize_dpo_trainer_no_warning_without_ghost_clipping(self):
+        """Privatizing trl.DPOTrainer does NOT emit a warning without ghost clipping."""
+        from trl import DPOTrainer
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            privatize_trainer(DPOTrainer)
+            ghost_warnings = [x for x in w if "ghost-clipping" in str(x.message)]
+            assert len(ghost_warnings) == 0
+
+
+class TestValidateGhostClipping:
+    """Test DPCallback._validate_ghost_clipping runtime validation."""
+
+    def test_passes_for_non_ghost_clipping_optimizer(self):
+        """No error when the optimizer is a regular DPOptimizer (not ghost clipping)."""
+        from dptrainer.hugging_face.callback import DPCallback
+
+        optimizer = Mock(spec=DPOptimizer)
+        model = Mock()
+        # Should not raise
+        DPCallback._validate_ghost_clipping(optimizer, model)
+
+    def test_passes_when_loss_function_is_correct(self):
+        """No error when ghost clipping optimizer and model has DPLossFastGradientClipping."""
+        from dptrainer.hugging_face.callback import DPCallback
+        from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
+        from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
+
+        optimizer = Mock(spec=DPOptimizerFastGradientClipping)
+        model = Mock()
+        model.loss_function = Mock(spec=DPLossFastGradientClipping)
+        del model._module  # ensure no unwrapping attribute
+        del model.module
+
+        DPCallback._validate_ghost_clipping(optimizer, model)
+
+    def test_raises_when_loss_function_is_wrong(self):
+        """RuntimeError when ghost clipping optimizer but loss_function is not wrapped."""
+        from dptrainer.hugging_face.callback import DPCallback
+        from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
+
+        optimizer = Mock(spec=DPOptimizerFastGradientClipping)
+        model = Mock()
+        model.loss_function = lambda x: x  # plain function, not DPLossFastGradientClipping
+        del model._module
+        del model.module
+
+        with pytest.raises(RuntimeError, match="Ghost clipping optimizer is active"):
+            DPCallback._validate_ghost_clipping(optimizer, model)
+
+    def test_raises_when_loss_function_missing(self):
+        """RuntimeError when ghost clipping optimizer but model has no loss_function."""
+        from dptrainer.hugging_face.callback import DPCallback
+        from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
+
+        optimizer = Mock(spec=DPOptimizerFastGradientClipping)
+        model = Mock(spec=[])  # empty spec = no attributes
+
+        with pytest.raises(RuntimeError, match="Ghost clipping optimizer is active"):
+            DPCallback._validate_ghost_clipping(optimizer, model)
+
+    def test_unwraps_model_with_module_attribute(self):
+        """Correctly unwraps model._module.module to find loss_function."""
+        from dptrainer.hugging_face.callback import DPCallback
+        from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
+        from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
+
+        inner_model = Mock()
+        inner_model.loss_function = Mock(spec=DPLossFastGradientClipping)
+        del inner_model._module
+        del inner_model.module
+
+        wrapper = Mock()
+        wrapper._module = inner_model
+        del wrapper.module
+
+        optimizer = Mock(spec=DPOptimizerFastGradientClipping)
+
+        # Should not raise — it finds the correct loss via unwrapping
+        DPCallback._validate_ghost_clipping(optimizer, wrapper)
 
 

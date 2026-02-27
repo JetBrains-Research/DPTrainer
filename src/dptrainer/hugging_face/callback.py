@@ -3,6 +3,8 @@ import warnings
 
 from opacus.accountants import create_accountant
 from opacus.optimizers import DPOptimizer
+from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
+from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 from riskcal import CTDAccountant
 from riskcal.conversions import get_beta_from_pld, get_advantage_from_pld
 from transformers import TrainerCallback, TrainerControl, TrainingArguments, TrainerState
@@ -42,6 +44,7 @@ class DPCallback(TrainerCallback, ExportableState):
         self.target_alpha = target_alpha
         self.max_epsilon = max_epsilon
         self.min_beta = min_beta
+        self._ghost_clipping_validated = False
 
     def get_optimizer_callback(self, sample_rate):
         """Get the optimizer hook function for privacy accounting.
@@ -58,9 +61,13 @@ class DPCallback(TrainerCallback, ExportableState):
         """Check if the privacy budget is already exceeded at the start of training."""
         return self._check_max_privacy_budget_exceeded(control)
 
-    def on_step_begin(self, args, state, control, optimizer=None, **kwargs):
+    def on_step_begin(self, args, state, control, optimizer=None, model=None, **kwargs):
         """Clean up extra elements in the optimizer step skip queue at the beginning of each step."""
         optimizer = self._get_dp_optimizer(optimizer)
+
+        if not self._ghost_clipping_validated:
+            self._validate_ghost_clipping(optimizer, model)
+            self._ghost_clipping_validated = True
 
         # trainer samples one extra element at the beginning of each epoch, cleaning it up if present
         while len(optimizer._step_skip_queue) > self.gradient_accumulation_steps:
@@ -111,6 +118,54 @@ class DPCallback(TrainerCallback, ExportableState):
 
         return metrics
 
+
+    @staticmethod
+    def _validate_ghost_clipping(optimizer, model):
+        """Validate that ghost clipping is properly configured when using a ghost clipping optimizer.
+
+        Checks that the model's loss_function is wrapped with DPLossFastGradientClipping
+        when using a ghost clipping optimizer, ensuring privacy gradients are computed correctly.
+
+        Args:
+            optimizer: The DP optimizer (possibly wrapped).
+            model: The model being trained.
+
+        Raises:
+            RuntimeError: If ghost clipping optimizer is used but the model's loss_function
+                is not wrapped with DPLossFastGradientClipping.
+        """
+        # Unwrap to the actual DP optimizer
+        dp_optimizer = optimizer
+        for _ in range(10):
+            if isinstance(dp_optimizer, DPOptimizer):
+                break
+            elif hasattr(dp_optimizer, 'optimizer'):
+                dp_optimizer = dp_optimizer.optimizer
+            elif hasattr(dp_optimizer, '_optimizer'):
+                dp_optimizer = dp_optimizer._optimizer
+            else:
+                return
+
+        if not isinstance(dp_optimizer, DPOptimizerFastGradientClipping):
+            return
+
+        # Ghost clipping optimizer detected — verify the loss function is properly wrapped
+        unwrapped = model
+        if hasattr(unwrapped, '_module'):
+            unwrapped = unwrapped._module
+        if hasattr(unwrapped, 'module'):
+            unwrapped = unwrapped.module
+
+        loss_fn = getattr(unwrapped, 'loss_function', None)
+        if not isinstance(loss_fn, DPLossFastGradientClipping):
+            raise RuntimeError(
+                f"Ghost clipping optimizer is active but the model's loss_function "
+                f"is {type(loss_fn).__name__}, not DPLossFastGradientClipping. "
+                f"This means ghost clipping was bypassed — likely because a custom "
+                f"trainer or model overrides compute_loss or training_step, or "
+                f"replaces the loss_function after DPTrainer initialization. "
+                f"Privacy gradients will NOT be computed correctly."
+            )
 
     def _get_dp_optimizer(self, optimizer) -> DPOptimizer:
 

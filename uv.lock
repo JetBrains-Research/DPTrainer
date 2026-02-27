@@ -305,6 +305,57 @@ wheels = [
 ]
 
 [[package]]
+name = "dptrainer"
+version = "0.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "accelerate" },
+    { name = "datasets" },
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "opacus" },
+    { name = "pandas" },
+    { name = "riskcal" },
+    { name = "torch" },
+    { name = "transformers" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pandas-stubs" },
+    { name = "peft" },
+    { name = "pytest" },
+]
+docs = [
+    { name = "mkdocstrings-python" },
+    { name = "zensical" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "accelerate", specifier = ">=1.10.0" },
+    { name = "datasets", specifier = ">=3.5" },
+    { name = "matplotlib", specifier = ">=3.10.7" },
+    { name = "numpy", specifier = ">=2.2" },
+    { name = "opacus", specifier = "==1.5.4.post10.dev1" },
+    { name = "pandas", specifier = ">=2.3.2" },
+    { name = "riskcal", specifier = "==1.2.0.dev1" },
+    { name = "torch", specifier = ">=2.6" },
+    { name = "transformers", specifier = ">=4.54.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pandas-stubs", specifier = "==2.3.2.250926" },
+    { name = "peft", specifier = ">=0.17.1" },
+    { name = "pytest" },
+]
+docs = [
+    { name = "mkdocstrings-python", specifier = ">=1.16" },
+    { name = "zensical", specifier = ">=0.0.11" },
+]
+
+[[package]]
 name = "filelock"
 version = "3.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -465,57 +516,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f2/97/ebf4da567aa6827c909642694d71c9fcf53e5b504f2d96afea02718862f3/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7", size = 4793, upload-time = "2025-03-19T20:09:59.721Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760", size = 6050, upload-time = "2025-03-19T20:10:01.071Z" },
-]
-
-[[package]]
-name = "DPTrainer"
-version = "0.0.0"
-source = { editable = "." }
-dependencies = [
-    { name = "accelerate" },
-    { name = "datasets" },
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "opacus" },
-    { name = "pandas" },
-    { name = "riskcal" },
-    { name = "torch" },
-    { name = "transformers" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pandas-stubs" },
-    { name = "peft" },
-    { name = "pytest" },
-]
-docs = [
-    { name = "mkdocstrings-python" },
-    { name = "zensical" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "accelerate", specifier = ">=1.10.0" },
-    { name = "datasets", specifier = ">=3.5" },
-    { name = "matplotlib", specifier = ">=3.10.7" },
-    { name = "numpy", specifier = ">=2.2" },
-    { name = "opacus", specifier = "==1.5.4.post10" },
-    { name = "pandas", specifier = ">=2.3.2" },
-    { name = "riskcal", specifier = "==1.2.0.dev1" },
-    { name = "torch", specifier = ">=2.6" },
-    { name = "transformers", specifier = ">=4.54.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pandas-stubs", specifier = "==2.3.2.250926" },
-    { name = "peft", specifier = ">=0.17.1" },
-    { name = "pytest" },
-]
-docs = [
-    { name = "mkdocstrings-python", specifier = ">=1.16" },
-    { name = "zensical", specifier = ">=0.0.11" },
 ]
 
 [[package]]
@@ -978,7 +978,7 @@ wheels = [
 
 [[package]]
 name = "opacus"
-version = "1.5.4.post10"
+version = "1.5.4.post10.dev1"
 source = { registry = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/simple" }
 dependencies = [
     { name = "numpy" },
@@ -986,9 +986,9 @@ dependencies = [
     { name = "scipy" },
     { name = "torch" },
 ]
-sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10.tar.gz", hash = "sha256:bdede9af11316463f04753afd0b0c4dd1980dce4514178d56bdd8e28130238a8" }
+sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10.dev1.tar.gz", hash = "sha256:3b06f2d28c0867fd350fbb3dd9254e4842f2ff919580dbed4cfe5c762e939f78" }
 wheels = [
-    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10-py3-none-any.whl", hash = "sha256:928d5355b4b6d5173a69fb0bee24eba7e0fc3d23ce3679b293c31181009cfa7e" },
+    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10.dev1-py3-none-any.whl", hash = "sha256:45586f957bc0412072594f61e426efd66835f866aab827016da572c1cd1893c5" },
 ]
 
 [[package]]

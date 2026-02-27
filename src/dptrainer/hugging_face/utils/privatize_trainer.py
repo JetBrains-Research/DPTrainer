@@ -1,10 +1,10 @@
-from functools import wraps
+import warnings
 
-from opacus.grad_sample import AbstractGradSampleModule
 from transformers import Trainer
 
 from dptrainer.hugging_face import DPTrainer
 
+_GHOST_CLIPPING_OVERRIDE_METHODS = ("compute_loss", "training_step")
 
 
 def privatize_trainer(cls, default_privacy_args = None):
@@ -27,7 +27,35 @@ def privatize_trainer(cls, default_privacy_args = None):
     """
     _change_base_recursively(cls, Trainer, DPTrainer)
 
+    ghost_clipping_enabled = (
+        default_privacy_args is not None
+        and getattr(default_privacy_args, "grad_sample_mode", None) == "ghost"
+    )
+    if ghost_clipping_enabled:
+        _warn_ghost_clipping_overrides(cls)
+
     setattr(cls, "default_privacy_args", default_privacy_args)
+
+
+def _warn_ghost_clipping_overrides(cls):
+    """
+    Emit warnings if *cls* or any class between it and DPTrainer in the MRO
+    overrides methods that could bypass ghost-clipping loss wrapping.
+    """
+    for klass in cls.__mro__:
+        if klass in (DPTrainer, Trainer, object):
+            break
+        for method_name in _GHOST_CLIPPING_OVERRIDE_METHODS:
+            if method_name in klass.__dict__:
+                warnings.warn(
+                    f"{klass.__qualname__} overrides '{method_name}'. "
+                    f"This may bypass DPTrainer's ghost-clipping loss wrapping "
+                    f"and lead to incorrect privacy gradients. "
+                    f"Consider removing the override or delegating to "
+                    f"super().{method_name}() to preserve differential privacy guarantees.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
 
 def _change_base_recursively(cls, old_base, new_base, visited=None):
