@@ -107,10 +107,10 @@ class DPTrainer(Trainer):
         optimizer.attach_step_hook(dp_callback.get_optimizer_callback(sample_rate=sample_rate))
 
         if self.privacy_args and self.privacy_args.grad_sample_mode == "ghost":
-            criterion = self.model._module.loss_function
+            criterion = self.model.loss_function
             if not hasattr(criterion, "reduction"):
                 setattr(criterion, "reduction", "mean")
-            criterion = DPLossFastGradientClipping(self.model,
+            criterion = DPLossFastGradientClipping(self.controller,
                                                    self.create_optimizer(),
                                                    criterion,
                                                    loss_reduction="mean")
