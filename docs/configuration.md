@@ -135,3 +135,15 @@ privacy_args = PrivacyArguments(
 
 !!! note
     Ghost clipping requires the model to have a `loss_function` attribute. Adaptive clipping is not supported with ghost clipping and will fall back to flat clipping.
+
+### Ghost Clipping Safety Guards
+
+When ghost clipping is enabled, `DPTrainer` wraps the model's `loss_function` with `DPLossFastGradientClipping` so that per-sample gradient norms are computed correctly. Two safety mechanisms protect against accidental bypasses:
+
+- **Static warning (`privatize_trainer`)** — when `privatize_trainer` is called with `grad_sample_mode="ghost"`, it inspects the trainer subclass hierarchy and emits a `UserWarning` if `compute_loss` or `training_step` is overridden. Such overrides may bypass the wrapped loss function and break privacy gradient computation.
+
+- **Runtime validation (`DPCallback`)** — on the first training step, `DPCallback` checks that the model's `loss_function` is still an instance of `DPLossFastGradientClipping` when a ghost clipping optimizer is active. If the loss function was replaced or unwrapped after initialization, a `RuntimeError` is raised to prevent silent privacy violations.
+
+## Distributed Training
+
+`DPTrainer` is designed for single-GPU training. Distributed training (multi-GPU or multi-node) is **not supported** and will raise a `ValueError` during initialization if `world_size > 1`.

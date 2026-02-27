@@ -6,8 +6,7 @@
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
-from dptrainer import PrivacyArguments
-from dptrainer.hugging_face import DPTrainer
+from dptrainer import DPTrainer, PrivacyArguments
 
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
