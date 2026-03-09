@@ -23,6 +23,50 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 - **`privatize_trainer` utility** — patch _any_ `Trainer`-based class (e.g., `DPOTrainer`, `Seq2SeqTrainer`) to use differential privacy without modifying its source code.
 - **Patched components** — includes a checkpoint-aware `EarlyStoppingCallback` compatible with DP training.
 
+## What Is Differential Privacy?
+
+Differential privacy (DP) is a mathematical framework that provides formal guarantees about the privacy of individuals in a dataset. A randomized algorithm *M* is **(ε, δ)-differentially private** if, for every pair of datasets *D* and *D′* that differ in a single record and for every set of possible outputs *S*:
+
+> P[M(D) ∈ S] ≤ e^ε · P[M(D′) ∈ S] + δ
+
+The parameter **ε** (epsilon) controls the privacy–utility trade-off: smaller ε means stronger privacy but typically lower model accuracy. **δ** bounds the probability that the guarantee fails. Together, (ε, δ) ensure that an adversary observing the algorithm's output cannot reliably determine whether any particular individual's data was included.
+
+### DP-SGD: Differential Privacy for Deep Learning
+
+Standard SGD computes gradients over a batch of training examples and applies their average to update model weights. **DP-SGD** modifies this process in two key ways:
+
+1. **Per-sample gradient clipping** — each individual example's gradient is clipped to a fixed norm *C*, bounding the maximum influence any single record can have on the update.
+2. **Noise injection** — calibrated Gaussian noise (scaled to *C*) is added to the aggregated gradient before the optimizer step, masking individual contributions.
+
+A **privacy accountant** tracks the cumulative privacy cost (ε, δ) across all training steps using composition theorems (e.g., Rényi DP composition or the moments accountant), providing a formal end-to-end guarantee for the released model.
+
+### Foundational Literature
+
+- **Dwork, McSherry, Nissim & Smith (2006)** — [*Calibrating Noise to Sensitivity in Private Data Analysis*](https://link.springer.com/chapter/10.1007/11681878_14) — introduced the formal definition of (ε, δ)-differential privacy.
+- **Dwork & Roth (2014)** — [*The Algorithmic Foundations of Differential Privacy*](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf) — comprehensive textbook covering the theory and core mechanisms of differential privacy.
+- **Abadi et al. (2016)** — [*Deep Learning with Differential Privacy*](https://arxiv.org/abs/1607.00133) — introduced DP-SGD and the moments accountant for training deep neural networks with formal privacy guarantees.
+- **Mironov (2017)** — [*Rényi Differential Privacy*](https://arxiv.org/abs/1702.07476) — proposed Rényi divergence-based privacy accounting, enabling tighter composition bounds.
+- **Balle, Barthe & Gavin (2018)** — [*Privacy Amplification by Subsampling*](https://arxiv.org/abs/1807.01647) — formalized how random sub-sampling of data amplifies differential privacy guarantees.
+
+## Why DPTrainer? Bridging Hugging Face Trainer and Opacus
+
+[Opacus](https://opacus.ai/) is the standard PyTorch library for DP-SGD. It provides the core building blocks — per-sample gradient computation, DP optimizers, privacy accountants, and data loaders with Poisson sampling — but it is designed around a manual PyTorch training loop. [Hugging Face Trainer](https://huggingface.co/docs/transformers/main_classes/trainer) is the dominant high-level training API for Transformers, offering logging, checkpointing, evaluation, mixed-precision, and callback orchestration — but it has no awareness of differential privacy.
+
+These two systems do not compose out of the box:
+
+| Concern | Hugging Face Trainer | Opacus | DPTrainer |
+|---|---|---|---|
+| Optimizer creation | Internal; builds Adam/AdamW from `TrainingArguments` | Wraps any optimizer in a `DPOptimizer` | Intercepts `create_optimizer` to wrap the HF-created optimizer with Opacus's `DPOptimizer` |
+| Gradient computation | Standard backprop (batch gradients) | Requires per-sample gradients via `GradSampleModule` | Wraps the model in Opacus's `GradSampleModule` controller before passing it to Trainer |
+| Data loading | Standard `DataLoader` with fixed batches | `DPDataLoader` for Poisson-sampled batches | Overrides `get_train_dataloader` to return an Opacus `DPDataLoader` when Poisson sampling is enabled |
+| Privacy accounting | Not supported | Manual — user must call the accountant each step | Automatically tracks (ε, δ) via a `DPCallback` hooked into the optimizer step |
+| Noise calibration | Not supported | User computes and passes `noise_multiplier` | Automatically calibrates `noise_multiplier` from a target ε (or α, β) budget |
+| Ghost clipping | Not supported | Provides `DPLossFastGradientClipping` primitive | Wraps the loss function with ghost clipping and warns if subclass overrides could bypass it |
+| Checkpointing | Saves model/optimizer/scheduler state | No checkpoint integration | Saves and restores accountant state with HF checkpoints for correct budget tracking across restarts |
+| Early stopping | Generic `EarlyStoppingCallback` | Not provided | Privacy-budget-aware early stopping that halts training when ε or β is exhausted |
+
+In short, plugging Opacus into Hugging Face Trainer requires coordinated changes to model wrapping, optimizer creation, data loading, loss computation, checkpointing, and callback management. `DPTrainer` handles all of this so you can add differential privacy to any `Trainer`-based workflow — including third-party trainers like `DPOTrainer` or `Seq2SeqTrainer` via the `privatize_trainer` utility — without modifying their source code.
+
 ## Installation
 
 ```bash
