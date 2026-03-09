@@ -8,6 +8,17 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 
 ## Overview
 
+DPTrainer is designed for any scenario where you need to train or fine-tune a language model on sensitive data while providing formal privacy guarantees:
+
+- **Medical and health records** — fine-tune clinical NLP models on patient data (e.g., EHRs, clinical notes) without risking memorization of individual records.
+- **Customer and user data** — train on support tickets, search queries, or behavioral logs while ensuring no single user's data can be extracted from the model.
+- **PII-laden corpora** — when training data contains names, addresses, emails, or other personally identifiable information that must not leak into model outputs.
+- **Regulatory compliance** — meet the technical requirements of GDPR, HIPAA, CCPA, and similar data protection regulations that mandate limits on personal data exposure.
+- **Publishing models trained on proprietary data** — release fine-tuned models publicly (or to third parties) with a formal, quantifiable guarantee that training data cannot be reconstructed or membership-inferred.
+- **Internal model sharing** — share models across teams or departments within an organization where access to the underlying training data is restricted.
+
+If your training data contains information about real people — or could be used to re-identify them — differential privacy provides the strongest known formal guarantee that the trained model does not reveal their participation.
+
 `DPTrainer` provides `DPTrainer` — a drop-in replacement for Hugging Face's `Trainer` that adds differential privacy (DP) guarantees via DP-SGD. It handles per-sample gradient clipping, noise injection, privacy budget accounting, and automatic noise calibration so you can fine-tune language models with formal privacy guarantees.
 
 ### Key Features

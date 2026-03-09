@@ -299,3 +299,89 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+## Ghost Clipping
+
+Ghost clipping is a memory-efficient alternative to the default hook-based per-sample gradient computation.
+Instead of materializing full per-sample gradients, it computes per-sample gradient *norms* in a first
+backward pass and then re-scales a standard (aggregated) gradient in a second pass. This can dramatically
+reduce GPU memory usage — especially for large models — while producing mathematically equivalent updates.
+
+
+Ghost clipping requires the model to expose a `loss_function` attribute — `DPTrainer` wraps it
+with `DPLossFastGradientClipping` to compute per-sample gradient norms during the forward pass.
+This means ghost clipping **cannot be used with trainer subclasses that override `compute_loss`
+or `training_step`** (e.g., `DPOTrainer`, `SFTTrainer`), because those overrides bypass the
+wrapped loss function and break privacy gradient computation. When you call `privatize_trainer`
+with `grad_sample_mode="ghost"`, it inspects the class hierarchy and emits a warning if such
+overrides are detected; at runtime, `DPCallback` raises a `RuntimeError` if the wrapped loss
+has been replaced. Additionally, **adaptive clipping is not supported** with ghost clipping and
+will silently fall back to flat clipping.
+
+Enable ghost clipping by setting `grad_sample_mode="ghost"` in `PrivacyArguments`:
+
+```python
+"""docs/examples/ghost_clipping.py"""
+
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
+
+from dptrainer import DPTrainer, PrivacyArguments
+
+
+def main():
+    # Load model and tokenizer
+    model_name = "gpt2"
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+
+    # Load and tokenize dataset
+    dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
+
+    def tokenize(examples):
+        return tokenizer(examples["text"], truncation=True, max_length=128)
+
+    tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset["train"].column_names)
+    tokenized = tokenized.filter(lambda x: len(x["input_ids"]) > 1)
+
+    # Configure privacy with ghost clipping
+    privacy_args = PrivacyArguments(
+        target_epsilon=8.0,
+        per_sample_max_grad_norm=1.0,
+        grad_sample_mode="ghost",  # Use ghost clipping for lower memory usage
+    )
+
+    # Configure training
+    training_args = TrainingArguments(
+        output_dir="./output/ghost-dp",
+        num_train_epochs=3,
+        per_device_train_batch_size=32,
+        learning_rate=5e-5,
+        logging_steps=50,
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        report_to="none",
+    )
+
+    # Train with differential privacy using ghost clipping
+    trainer = DPTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized["train"],
+        eval_dataset=tokenized["validation"],
+        privacy_args=privacy_args,
+        data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
+    )
+
+    trainer.train()
+
+    # Save the model
+    model = trainer.detach_model()
+    model.save_pretrained("./output/ghost-dp/final")
+    tokenizer.save_pretrained("./output/ghost-dp/final")
+
+
+if __name__ == "__main__":
+    main()
+```
