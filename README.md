@@ -40,6 +40,18 @@ Standard SGD computes gradients over a batch of training examples and applies th
 
 A **privacy accountant** tracks the cumulative privacy cost (ε, δ) across all training steps using composition theorems (e.g., Rényi DP composition or the moments accountant), providing a formal end-to-end guarantee for the released model.
 
+### Privacy Budget and Guarantee Failure
+
+Differential privacy is not a binary property — it degrades gracefully as more computations touch the same data. Every DP-SGD step consumes a portion of the **privacy budget**, and the (ε, δ) guarantee applies to the *entire* training run, not to any single step in isolation.
+
+**How composition works.** Each noisy gradient step is itself an (ε₁, δ₁)-DP mechanism. When *T* steps are composed, the total privacy cost grows with *T*. Naïve composition adds the per-step ε values linearly, but tighter analyses — such as the **moments accountant** (Abadi et al., 2016), **Rényi DP** composition (Mironov, 2017), and **privacy loss distributions** — grow closer to O(√T), making longer training runs feasible under a fixed budget.
+
+**What ε actually bounds.** After training completes with a total budget of (ε, δ), any hypothesis test an adversary can run to decide whether a specific individual was in the training set has its advantage bounded: roughly, the log-likelihood ratio of any output under neighboring datasets is at most ε, except with probability δ. A smaller ε means the trained model "looks almost the same" regardless of any one person's participation.
+
+**How the guarantee can fail (the role of δ).** The δ parameter represents the probability that the ε-bounded guarantee does not hold at all. With probability at most δ, the mechanism may produce an output that reveals an individual's participation with no bound on the likelihood ratio. In practice δ is set to a cryptographically small value — typically less than 1/*n* where *n* is the dataset size — so that this catastrophic failure event is negligibly rare.
+
+**Budget exhaustion.** Once the accumulated privacy cost reaches the target (ε, δ), the guarantee covers everything the model has revealed so far. Continuing to train — or releasing intermediate checkpoints — without accounting for the additional cost would exceed the stated guarantee. This is why `DPTrainer` tracks the running budget and can automatically stop training when it is exhausted, ensuring the published (ε, δ) bound remains valid.
+
 ### Foundational Literature
 
 - **Dwork, McSherry, Nissim & Smith (2006)** — [*Calibrating Noise to Sensitivity in Private Data Analysis*](https://link.springer.com/chapter/10.1007/11681878_14) — introduced the formal definition of (ε, δ)-differential privacy.
