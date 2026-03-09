@@ -46,7 +46,9 @@ model.save_pretrained("./my-private-model")
 
 ## Privatizing Any Trainer
 
-Use `privatize_trainer` to add differential privacy to any `Trainer` subclass without changing its code:
+`DPTrainer` works as a direct replacement for `Trainer`, but many Hugging Face workflows rely on specialized trainer subclasses — `Seq2SeqTrainer`, `DPOTrainer`, `SFTTrainer`, and others — that add task-specific logic (custom loss functions, generation, reward computation) on top of `Trainer`. Rewriting these classes to inherit from `DPTrainer` would be invasive and fragile.
+
+The `privatize_trainer` utility solves this by patching any `Trainer`-based class at runtime, swapping `Trainer` for `DPTrainer` in its method resolution order (MRO). The patched class retains all of its original behavior while gaining differential privacy:
 
 ```python
 from trl import DPOTrainer
@@ -58,10 +60,10 @@ privacy_args = PrivacyArguments(
     per_sample_max_grad_norm=1.0,
 )
 
-# Patch DPOTrainer to inherit from DPTrainer instead of Trainer
+# One-line patch — DPOTrainer now trains with DP-SGD
 privatize_trainer(DPOTrainer, default_privacy_args=privacy_args)
 
-# Now use DPOTrainer as usual — it trains with DP automatically
+# Use DPOTrainer exactly as before — no other code changes needed
 trainer = DPOTrainer(
     model=model,
     args=training_args,
@@ -70,6 +72,10 @@ trainer = DPOTrainer(
 )
 trainer.train()
 ```
+
+When ghost clipping is enabled (`grad_sample_mode="ghost"` in `PrivacyArguments`), `privatize_trainer` automatically inspects the patched class's MRO and warns if any intermediate class overrides `compute_loss` or `training_step` in a way that could bypass `DPTrainer`'s loss wrapping — so you get safety checks without manual auditing.
+
+For a complete runnable example — including dataset loading, preprocessing, and model saving — see [Privatizing a Third-Party Trainer](examples.md#privatizing-a-third-party-trainer) in the examples documentation.
 
 ## Saving and Loading
 

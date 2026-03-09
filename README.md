@@ -124,6 +124,39 @@ trainer = DPTrainer(
 trainer.train()
 ```
 
+## Privatizing Third-Party Trainers
+
+`DPTrainer` works as a direct replacement for `Trainer`, but many Hugging Face workflows use specialized trainer subclasses — `Seq2SeqTrainer`, `DPOTrainer`, `SFTTrainer`, and others — that add task-specific logic on top of `Trainer`. Rewriting these classes to inherit from `DPTrainer` would be invasive and fragile.
+
+The `privatize_trainer` utility solves this by patching any `Trainer`-based class at runtime, swapping `Trainer` for `DPTrainer` in its inheritance chain. The patched class retains all of its original behavior (custom loss functions, generation logic, reward computation) while gaining differential privacy:
+
+```python
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
+from dptrainer import PrivacyArguments
+from dptrainer.hugging_face.utils import privatize_trainer
+
+privacy_args = PrivacyArguments(
+    target_epsilon=8.0,
+    per_sample_max_grad_norm=1.0,
+)
+
+# One-line patch — Seq2SeqTrainer now trains with DP-SGD
+privatize_trainer(Seq2SeqTrainer, default_privacy_args=privacy_args)
+
+# Use Seq2SeqTrainer exactly as before — no other code changes needed
+trainer = Seq2SeqTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    processing_class=tokenizer,
+)
+trainer.train()
+```
+
+When ghost clipping is enabled, `privatize_trainer` automatically inspects the patched class's MRO and warns if any intermediate class overrides `compute_loss` or `training_step` in a way that could bypass DPTrainer's loss wrapping — so you get safety checks without manual auditing.
+
+For a complete runnable example — including dataset preparation, model loading, and saving — see [Privatizing a Third-Party Trainer](docs/examples.md#privatizing-a-third-party-trainer) in the examples documentation.
+
 ## Documentation
 
 For full documentation — including configuration reference, component details, noise calibration, and more — see the [docs](docs/index.md).
