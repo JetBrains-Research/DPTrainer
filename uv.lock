@@ -337,7 +337,7 @@ requires-dist = [
     { name = "datasets", specifier = ">=3.5" },
     { name = "matplotlib", specifier = ">=3.10.7" },
     { name = "numpy", specifier = ">=2.2" },
-    { name = "opacus", specifier = "==1.5.4.post10.dev1" },
+    { name = "opacus", specifier = "==1.5.4.post12" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "riskcal", specifier = "==1.2.0.dev1" },
     { name = "torch", specifier = ">=2.6" },
@@ -462,6 +462,7 @@ wheels = [
 name = "griffelib"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/06/eccbd311c9e2b3ca45dbc063b93134c57a1ccc7607c5e545264ad092c4a9/griffelib-2.0.0.tar.gz", hash = "sha256:e504d637a089f5cab9b5daf18f7645970509bf4f53eda8d79ed71cce8bd97934", size = 166312, upload-time = "2026-03-23T21:06:55.954Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4d/51/c936033e16d12b627ea334aaaaf42229c37620d0f15593456ab69ab48161/griffelib-2.0.0-py3-none-any.whl", hash = "sha256:01284878c966508b6d6f1dbff9b6fa607bc062d8261c5c7253cb285b06422a7f", size = 142004, upload-time = "2026-02-09T19:09:40.561Z" },
 ]
@@ -978,7 +979,7 @@ wheels = [
 
 [[package]]
 name = "opacus"
-version = "1.5.4.post10.dev1"
+version = "1.5.4.post12"
 source = { registry = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/simple" }
 dependencies = [
     { name = "numpy" },
@@ -986,9 +987,9 @@ dependencies = [
     { name = "scipy" },
     { name = "torch" },
 ]
-sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10.dev1.tar.gz", hash = "sha256:3b06f2d28c0867fd350fbb3dd9254e4842f2ff919580dbed4cfe5c762e939f78" }
+sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post12.tar.gz", hash = "sha256:469325805131529e45a6f2dd99082dd7a83f20888a514874946c1c70629c4258" }
 wheels = [
-    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post10.dev1-py3-none-any.whl", hash = "sha256:45586f957bc0412072594f61e426efd66835f866aab827016da572c1cd1893c5" },
+    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post12-py3-none-any.whl", hash = "sha256:bbd97eb02ddea0e7a02f654fc5e5e91099a21c79a7031ddce5ca84e1ddb58663" },
 ]
 
 [[package]]

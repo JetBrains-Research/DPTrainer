@@ -4,7 +4,7 @@ from typing import Optional, Union, Callable
 
 import datasets
 import torch
-from opacus.grad_sample.utils import wrap_model_in_controller
+from opacus.grad_sample.utils import prepare_module
 from opacus.data_loader import DPDataLoader
 from opacus.optimizers import get_optimizer_class, AdaClipDPOptimizer
 from opacus.utils.batch_memory_manager import wrap_data_loader
@@ -74,9 +74,10 @@ class DPTrainer(Trainer):
 
         logger.info(f"Using privacy noise multiplier: {self.privacy_args.noise_multiplier}")
 
-        self.controller = wrap_model_in_controller(
+        self.hooks = prepare_module(
             model,
             grad_sample_mode=self.privacy_args.grad_sample_mode,
+            wrap_model=False,
         )
 
         dp_callback = DPCallback(
@@ -112,7 +113,7 @@ class DPTrainer(Trainer):
             criterion = self.model.loss_function
             if not hasattr(criterion, "reduction"):
                 setattr(criterion, "reduction", "mean")
-            criterion = DPLossFastGradientClipping(self.controller,
+            criterion = DPLossFastGradientClipping(self.hooks,
                                                    self.create_optimizer(),
                                                    criterion,
                                                    loss_reduction="mean")
@@ -193,7 +194,7 @@ class DPTrainer(Trainer):
         return data_loader
 
     def detach_model(self) -> nn.Module:
-        """Detach the model from the controller and return the model.
+        """Detach the model from the hooks and return the model.
 
         The method cleans up resources or connections associated with the private trainer
         and detaches the managed model for further usage, if needed.
@@ -201,6 +202,6 @@ class DPTrainer(Trainer):
         Returns:
             nn.Module: Detached model.
         """
-        self.controller.cleanup()
+        self.hooks.cleanup()
 
         return self.model
