@@ -16,26 +16,20 @@ class TestDPCallbackInitialization:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
         assert callback.target_delta == 1e-5
-        assert callback.target_alpha == 0.001
         assert callback.gradient_accumulation_steps == 2
         assert callback.max_epsilon is None
-        assert callback.min_beta is None
 
     def test_initialization_with_privacy_budget_limits(self):
-        """Test initialization with max_epsilon and min_beta."""
+        """Test initialization with max_epsilon."""
         callback = DPCallback(
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
             max_epsilon=3.0,
-            min_beta=0.05,
         )
         assert callback.max_epsilon == 3.0
-        assert callback.min_beta == 0.05
 
 
 class TestDPCallbackPrivacyMetrics:
@@ -53,7 +47,6 @@ class TestDPCallbackPrivacyMetrics:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         metrics = callback.get_privacy_metrics()
@@ -72,7 +65,6 @@ class TestDPCallbackPrivacyMetrics:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         metrics = callback.get_privacy_metrics()
@@ -91,7 +83,6 @@ class TestDPCallbackPrivacyMetrics:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=None,  # No target_delta
-            target_alpha=None,  # No target_alpha
         )
 
         metrics = callback.get_privacy_metrics()
@@ -112,7 +103,6 @@ class TestDPCallbackGetDPOptimizer:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         result = callback._get_dp_optimizer(mock_optimizer)
@@ -130,7 +120,6 @@ class TestDPCallbackGetDPOptimizer:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         result = callback._get_dp_optimizer(mock_wrapper)
@@ -145,7 +134,6 @@ class TestDPCallbackGetDPOptimizer:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         with pytest.raises(ValueError, match="Expected DPOptimizer"):
@@ -167,7 +155,6 @@ class TestDPCallbackPrivacyBudgetChecks:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
             max_epsilon=3.0,
         )
 
@@ -188,7 +175,6 @@ class TestDPCallbackPrivacyBudgetChecks:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
             max_epsilon=3.0,
         )
 
@@ -213,9 +199,7 @@ class TestDPCallbackState:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
             max_epsilon=3.0,
-            min_beta=0.05,
         )
 
         state = callback.state()
@@ -226,7 +210,6 @@ class TestDPCallbackState:
         assert state["args"]["target_delta"] == 1e-5
         assert state["args"]["gradient_accumulation_steps"] == 2
         assert state["args"]["max_epsilon"] == 3.0
-        assert state["args"]["min_beta"] == 0.05
         assert "_accountant_state_dict" in state["attributes"]
 
     @patch("dptrainer.hugging_face.callback.create_accountant")
@@ -242,7 +225,6 @@ class TestDPCallbackState:
             accountant="rdp",
             gradient_accumulation_steps=2,
             target_delta=1e-5,
-            target_alpha=0.001,
         )
 
         test_state = {"step": 5, "history": [1, 2, 3]}

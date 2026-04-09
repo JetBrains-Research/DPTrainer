@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from opacus.accountants.utils import get_noise_multiplier
-from riskcal.dpsgd import find_noise_multiplier_for_err_rates
 from transformers import logging
 
 logger = logging.get_logger(__name__)
@@ -26,8 +25,6 @@ class PrivacyArguments:
         noise_multiplier (Optional[float]): Noise multiplier for DP training.
         target_epsilon (Optional[float]): Target epsilon at end of training (mutually exclusive with noise multiplier).
         target_delta (Optional[float]): Target delta, defaults to 1/N.
-        target_alpha (Optional[float]): Target false positive rate for beta search.
-        target_beta (Optional[float]): Target false negative rate.
     """
     accountant: str = field(default="rdp", metadata={"help": "Accountant mechanism to use for DP training"})
     grad_sample_mode: str = field(default="hooks", metadata={"help": "Grad sample mode of Opacus"})
@@ -45,8 +42,6 @@ class PrivacyArguments:
     target_epsilon: Optional[float] = field(default=None, metadata={
         "help": "Target epsilon at end of training (mutually exclusive with noise multiplier)"})
     target_delta: Optional[float] = field(default=None, metadata={"help": "Target delta, defaults to 1/N"})
-    target_alpha: Optional[float] = field(default=0.0001, metadata={"help": "Target fpr for beta search"})
-    target_beta: Optional[float] = field(default=None, metadata={"help": "Target fnr"})
 
     @classmethod
     def low_privacy(cls):
@@ -61,7 +56,7 @@ class PrivacyArguments:
         """Precalculate the noise multiplier based on target privacy parameters.
 
         Sets `target_delta` to 1/N if not provided, then computes `noise_multiplier`
-        from `target_epsilon` or `target_beta` if `noise_multiplier` is not already set.
+        from `target_epsilon` if `noise_multiplier` is not already set.
 
         Args:
             num_samples (int): Total number of samples in the training dataset.
@@ -78,14 +73,5 @@ class PrivacyArguments:
             with warnings.catch_warnings(category=UserWarning, action="ignore"):
                 self.noise_multiplier = get_noise_multiplier(target_epsilon=self.target_epsilon,
                     target_delta=self.target_delta, sample_rate=sample_rate, steps=steps, accountant=self.accountant)
-        elif self.target_beta is not None:
-            self.noise_multiplier = find_noise_multiplier_for_err_rates(
-                alpha=self.target_alpha,
-                beta=self.target_beta,
-                num_steps=steps,
-                sample_rate=sample_rate,
-                beta_error=0.01,
-                grid_step=0.001
-            )
         else:
             self.noise_multiplier = 0.0

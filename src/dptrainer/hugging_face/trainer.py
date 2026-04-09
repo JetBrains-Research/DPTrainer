@@ -84,9 +84,7 @@ class DPTrainer(Trainer):
             accountant=self.privacy_args.accountant,
             gradient_accumulation_steps=args.gradient_accumulation_steps,
             target_delta=self.privacy_args.target_delta,
-            target_alpha=self.privacy_args.target_alpha,
             max_epsilon=self.privacy_args.target_epsilon,
-            min_beta=self.privacy_args.target_beta,
         )
         callbacks = callbacks or []
         callbacks.append(dp_callback)

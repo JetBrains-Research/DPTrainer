@@ -16,7 +16,7 @@ privacy_args = PrivacyArguments(
     target_epsilon=8.0,       # Target privacy budget
     target_delta=1e-5,        # Target delta (defaults to 1/N if not set)
     per_sample_max_grad_norm=1.0,
-    accountant="rdp",         # "rdp" or "ctd"
+    accountant="rdp",
 )
 
 training_args = TrainingArguments(

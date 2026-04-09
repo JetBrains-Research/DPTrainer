@@ -9,12 +9,12 @@ Differential privacy training utilities for PyTorch and Hugging Face Transformer
 ### Key Features
 
 - **Drop-in Hugging Face integration** — `DPTrainer` extends `transformers.Trainer`, so all standard training arguments, callbacks, checkpointing, and evaluation workflows work out of the box.
-- **Automatic noise calibration** — specify a target privacy budget (ε, δ) or error rates (α, β) and the noise multiplier is computed automatically.
-- **Multiple privacy accountants** — supports Rényi DP (`rdp`) and the Connect-the-Dots accountant (`ctd`) from [riskcal](https://github.com/microsoft/riskcal) for tighter privacy analysis.
+- **Automatic noise calibration** — specify a target privacy budget (ε, δ) and the noise multiplier is computed automatically.
+- **Privacy accounting via Opacus** — uses Rényi DP (`rdp`) accounting for end-to-end privacy tracking.
 - **Gradient clipping strategies** — flat, adaptive (AdaClip), and per-layer clipping modes.
 - **Poisson sampling** — optional Poisson sub-sampling for stronger privacy amplification.
 - **Ghost clipping** — memory-efficient per-sample gradient computation via Opacus ghost clipping mode, with built-in safety guards that warn about incompatible method overrides and validate correct loss wrapping at runtime.
-- **Privacy budget early stopping** — training automatically stops when the privacy budget (ε or β) is exhausted.
+- **Privacy budget early stopping** — training automatically stops when the privacy budget (ε) is exhausted.
 - **Checkpoint-aware accounting** — privacy accountant state is saved and restored with checkpoints for correct budget tracking across restarts.
 - **`privatize_trainer` utility** — patch _any_ `Trainer`-based class (e.g., `DPOTrainer`, `Seq2SeqTrainer`) to use differential privacy without modifying its source code.
 - **Single-GPU training** — designed for single-GPU training; distributed training (multi-GPU / multi-node) is not supported.

@@ -155,12 +155,12 @@ if __name__ == "__main__":
     main()
 ```
 
-## Using the CTD Accountant with Beta Targets
+## Using a Stricter Epsilon Budget
 
-Train with the Connect-the-Dots accountant using error rate targets instead of epsilon:
+Train with a stricter epsilon target for stronger privacy:
 
 ```python
-"""docs/examples/ctd_accountant.py"""
+"""docs/examples/strict_epsilon.py"""
 
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
@@ -184,17 +184,16 @@ def main():
     tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset["train"].column_names)
     tokenized = tokenized.filter(lambda x: len(x["input_ids"]) > 1)
 
-    # Configure privacy with CTD accountant and beta target
+    # Configure privacy with a strict epsilon budget
     privacy_args = PrivacyArguments(
-        target_alpha=0.0001,   # False positive rate
-        target_beta=0.1,       # False negative rate — training stops when exceeded
+        target_epsilon=4.0,
+        target_delta=1e-5,
         per_sample_max_grad_norm=1.0,
-        accountant="ctd",
     )
 
     # Configure training
     training_args = TrainingArguments(
-        output_dir="./output/ctd-dp",
+        output_dir="./output/strict-epsilon-dp",
         num_train_epochs=5,
         per_device_train_batch_size=32,
         learning_rate=5e-5,
@@ -218,8 +217,8 @@ def main():
 
     # Save the model
     model = trainer.detach_model()
-    model.save_pretrained("./output/ctd-dp/final")
-    tokenizer.save_pretrained("./output/ctd-dp/final")
+    model.save_pretrained("./output/strict-epsilon-dp/final")
+    tokenizer.save_pretrained("./output/strict-epsilon-dp/final")
 
 
 if __name__ == "__main__":

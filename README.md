@@ -24,12 +24,12 @@ If your training data contains information about real people — or could be use
 ### Key Features
 
 - **Drop-in Hugging Face integration** — `DPTrainer` extends `transformers.Trainer`, so all standard training arguments, callbacks, checkpointing, and evaluation workflows work out of the box.
-- **Automatic noise calibration** — specify a target privacy budget (ε, δ) or error rates (α, β) and the noise multiplier is computed automatically.
-- **Multiple privacy accountants** — supports Rényi DP (`rdp`) and the Connect-the-Dots accountant (`ctd`) from [riskcal](https://github.com/microsoft/riskcal) for tighter privacy analysis.
+- **Automatic noise calibration** — specify a target privacy budget (ε, δ) and the noise multiplier is computed automatically.
+- **Privacy accounting via Opacus** — uses Rényi DP (`rdp`) accounting for end-to-end privacy tracking.
 - **Gradient clipping strategies** — flat, adaptive (AdaClip), and per-layer clipping modes.
 - **Poisson sampling** — optional Poisson sub-sampling for stronger privacy amplification.
 - **Ghost clipping** — memory-efficient per-sample gradient computation via Opacus ghost clipping mode.
-- **Privacy budget early stopping** — training automatically stops when the privacy budget (ε or β) is exhausted.
+- **Privacy budget early stopping** — training automatically stops when the privacy budget (ε) is exhausted.
 - **Checkpoint-aware accounting** — privacy accountant state is saved and restored with checkpoints for correct budget tracking across restarts.
 - **`privatize_trainer` utility** — patch _any_ `Trainer`-based class (e.g., `DPOTrainer`, `Seq2SeqTrainer`) to use differential privacy without modifying its source code.
 - **Patched components** — includes a checkpoint-aware `EarlyStoppingCallback` compatible with DP training.
@@ -83,10 +83,10 @@ These two systems do not compose out of the box:
 | Gradient computation | Standard backprop (batch gradients) | Requires per-sample gradients via `GradSampleModule` | Wraps the model in Opacus's `GradSampleModule` controller before passing it to Trainer |
 | Data loading | Standard `DataLoader` with fixed batches | `DPDataLoader` for Poisson-sampled batches | Overrides `get_train_dataloader` to return an Opacus `DPDataLoader` when Poisson sampling is enabled |
 | Privacy accounting | Not supported | Manual — user must call the accountant each step | Automatically tracks (ε, δ) via a `DPCallback` hooked into the optimizer step |
-| Noise calibration | Not supported | User computes and passes `noise_multiplier` | Automatically calibrates `noise_multiplier` from a target ε (or α, β) budget |
+| Noise calibration | Not supported | User computes and passes `noise_multiplier` | Automatically calibrates `noise_multiplier` from a target ε budget |
 | Ghost clipping | Not supported | Provides `DPLossFastGradientClipping` primitive | Wraps the loss function with ghost clipping and warns if subclass overrides could bypass it |
 | Checkpointing | Saves model/optimizer/scheduler state | No checkpoint integration | Saves and restores accountant state with HF checkpoints for correct budget tracking across restarts |
-| Early stopping | Generic `EarlyStoppingCallback` | Not provided | Privacy-budget-aware early stopping that halts training when ε or β is exhausted |
+| Early stopping | Generic `EarlyStoppingCallback` | Not provided | Privacy-budget-aware early stopping that halts training when ε is exhausted |
 
 In short, plugging Opacus into Hugging Face Trainer requires coordinated changes to model wrapping, optimizer creation, data loading, loss computation, checkpointing, and callback management. `DPTrainer` handles all of this so you can add differential privacy to any `Trainer`-based workflow — including third-party trainers like `DPOTrainer` or `Seq2SeqTrainer` via the `privatize_trainer` utility — without modifying their source code.
 

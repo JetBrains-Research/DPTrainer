@@ -6,12 +6,10 @@ All privacy-related parameters are configured through the `PrivacyArguments` dat
 
 | Parameter | Default | Description |
 |---|---|---|
-| `accountant` | `"rdp"` | Privacy accountant mechanism (`"rdp"` or `"ctd"`) |
+| `accountant` | `"rdp"` | Privacy accountant mechanism (`"rdp"`) |
 | `noise_multiplier` | `None` | Noise multiplier σ for DP-SGD. Auto-calculated if `None` |
 | `target_epsilon` | `None` | Target ε at end of training (used to auto-calculate σ) |
 | `target_delta` | `None` | Target δ (defaults to `1/N` where N is the dataset size) |
-| `target_alpha` | `0.0001` | Target FPR for β search (used with `ctd` accountant) |
-| `target_beta` | `None` | Target FNR (alternative to ε for noise calibration) |
 | `per_sample_max_grad_norm` | `0.5` | Maximum gradient norm for per-sample clipping |
 | `clipping` | `"flat"` | Clipping strategy: `"flat"`, `"adaptive"`, or `"per_layer"` |
 | `poisson_sampling` | `True` | Use Poisson sub-sampling for privacy amplification |
@@ -35,8 +33,7 @@ The noise multiplier is determined automatically based on the privacy target you
 
 1. **Explicit `noise_multiplier`** — used directly if provided.
 2. **`target_epsilon`** — noise is calibrated to achieve the target (ε, δ)-DP using the specified accountant.
-3. **`target_beta`** — noise is calibrated to achieve the target (α, β) error rates using [riskcal](https://github.com/microsoft/riskcal).
-4. **None specified** — defaults to `noise_multiplier=0.0` (no noise, no privacy).
+3. **None specified** — defaults to `noise_multiplier=0.0` (no noise, no privacy).
 
 ### Example: Epsilon-Based Calibration
 
@@ -49,20 +46,6 @@ privacy_args = PrivacyArguments(
     target_delta=1e-5,
     per_sample_max_grad_norm=1.0,
     accountant="rdp",
-)
-```
-
-### Example: Beta-Based Calibration (CTD Accountant)
-
-```python
-from dptrainer import PrivacyArguments
-
-# Use Connect-the-Dots accountant with error rate targets
-privacy_args = PrivacyArguments(
-    target_alpha=0.0001,
-    target_beta=0.1,
-    per_sample_max_grad_norm=1.0,
-    accountant="ctd",
 )
 ```
 
@@ -80,9 +63,9 @@ privacy_args = PrivacyArguments(
 
 ## Privacy Budget Early Stopping
 
-`DPTrainer` automatically monitors the privacy budget during training. If a `target_epsilon` or `target_beta` is set, training will stop early when the budget is exhausted. This is handled by the built-in `DPCallback`.
+`DPTrainer` automatically monitors the privacy budget during training. If a `target_epsilon` is set, training will stop early when the budget is exhausted. This is handled by the built-in `DPCallback`.
 
-Privacy metrics (`privacy_epsilon`, `privacy_beta`, `privacy_advantage`) are logged alongside standard training metrics during evaluation.
+Privacy metrics (`privacy_epsilon`) are logged alongside standard training metrics during evaluation.
 
 ## Clipping Strategies
 
