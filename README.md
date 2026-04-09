@@ -89,7 +89,7 @@ privacy_args = PrivacyArguments(
 )
 
 # One-line patch — DPOTrainer now trains with DP-SGD
-privatize_trainer(DPOTrainer, default_privacy_args=privacy_args)
+privatize_trainer(DPOTrainer)
 
 # Use DPOTrainer exactly as before — no other code changes needed
 trainer = DPOTrainer(
@@ -97,6 +97,7 @@ trainer = DPOTrainer(
     args=training_args,
     train_dataset=train_dataset,
     processing_class=tokenizer,
+    privacy_args=privacy_args,
 )
 trainer.train()
 ```

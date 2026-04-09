@@ -53,7 +53,7 @@ The `privatize_trainer` utility solves this by patching any `Trainer`-based clas
 ```python
 from trl import DPOTrainer
 from dptrainer import PrivacyArguments
-from dptrainer.hugging_face.utils import privatize_trainer
+from dptrainer import privatize_trainer
 
 privacy_args = PrivacyArguments(
     target_epsilon=8.0,

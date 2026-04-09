@@ -93,7 +93,7 @@ from transformers import (
 )
 
 from dptrainer import PrivacyArguments
-from dptrainer.hugging_face.utils import privatize_trainer
+from dptrainer import privatize_trainer
 
 
 def main():
@@ -122,7 +122,7 @@ def main():
     )
 
     # Patch Seq2SeqTrainer to use DPTrainer under the hood
-    privatize_trainer(Seq2SeqTrainer, default_privacy_args=privacy_args)
+    privatize_trainer(Seq2SeqTrainer)
 
     # Configure training
     training_args = Seq2SeqTrainingArguments(
@@ -142,6 +142,7 @@ def main():
         args=training_args,
         train_dataset=train_dataset,
         processing_class=tokenizer,
+        privacy_args=privacy_args,
     )
 
     trainer.train()
