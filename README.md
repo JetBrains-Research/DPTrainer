@@ -118,6 +118,10 @@ When ghost clipping is enabled, `privatize_trainer` automatically inspects the p
 | `grad_sample_mode` | `"hooks"` | Opacus grad sample mode (`"hooks"` or `"ew"`). Use `"ew"` for ghost clipping. |
 | `accountant` | `"rdp"` | Privacy accountant type (passed to Opacus). |
 
+## Docs
+
+For detailed documentation, please visit the [docs](docs/index.md).
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
