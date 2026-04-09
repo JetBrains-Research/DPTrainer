@@ -37,4 +37,3 @@ uv pip install DPTrainer
 - [Getting Started](getting-started.md) — quick-start guide with code examples.
 - [Configuration](configuration.md) — full reference for `PrivacyArguments` and noise calibration.
 - [Examples](examples.md) — end-to-end training scripts.
-- [API Reference](api/index.md). — auto-generated documentation for all public classes and functions.
