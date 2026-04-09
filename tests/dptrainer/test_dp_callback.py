@@ -4,7 +4,7 @@ from unittest.mock import Mock, MagicMock, patch
 import pytest
 from transformers import TrainerControl
 
-from dptrainer.hugging_face.callback import DPCallback
+from dptrainer.callback import DPCallback
 
 
 class TestDPCallbackInitialization:
@@ -35,7 +35,7 @@ class TestDPCallbackInitialization:
 class TestDPCallbackPrivacyMetrics:
     """Test privacy metrics calculation."""
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_get_privacy_metrics_rdp_empty_history(self, mock_create_accountant):
         """Test privacy metrics with RDP accountant and empty history."""
         mock_accountant = Mock()
@@ -53,7 +53,7 @@ class TestDPCallbackPrivacyMetrics:
         assert "privacy_epsilon" in metrics
         assert metrics["privacy_epsilon"] == 0.0
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_get_privacy_metrics_rdp_with_history(self, mock_create_accountant):
         """Test privacy metrics with RDP accountant and non-empty history."""
         mock_accountant = Mock()
@@ -72,7 +72,7 @@ class TestDPCallbackPrivacyMetrics:
         assert metrics["privacy_epsilon"] == 2.5
         mock_accountant.get_epsilon.assert_called_once_with(1e-5)
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_get_privacy_metrics_no_target_delta(self, mock_create_accountant):
         """Test privacy metrics when target_delta is None."""
         mock_accountant = Mock()
@@ -143,7 +143,7 @@ class TestDPCallbackGetDPOptimizer:
 class TestDPCallbackPrivacyBudgetChecks:
     """Test privacy budget exceeded checks."""
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_max_epsilon_exceeded(self, mock_create_accountant):
         """Test training stops when max_epsilon is exceeded."""
         mock_accountant = Mock()
@@ -163,7 +163,7 @@ class TestDPCallbackPrivacyBudgetChecks:
 
         assert result.should_training_stop is True
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_max_epsilon_not_exceeded(self, mock_create_accountant):
         """Test training continues when max_epsilon is not exceeded."""
         mock_accountant = Mock()
@@ -187,7 +187,7 @@ class TestDPCallbackPrivacyBudgetChecks:
 class TestDPCallbackState:
     """Test callback state serialization."""
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_state_serialization(self, mock_create_accountant):
         """Test that state() returns proper structure."""
         mock_accountant = Mock()
@@ -212,7 +212,7 @@ class TestDPCallbackState:
         assert state["args"]["max_epsilon"] == 3.0
         assert "_accountant_state_dict" in state["attributes"]
 
-    @patch("dptrainer.hugging_face.callback.create_accountant")
+    @patch("dptrainer.callback.create_accountant")
     def test_accountant_state_dict_setter(self, mock_create_accountant):
         """Test that accountant state dict can be set."""
         mock_accountant = Mock()

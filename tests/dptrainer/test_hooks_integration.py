@@ -17,7 +17,7 @@ from opacus.grad_sample.utils import prepare_module
 from opacus.grad_sample import GradSampleHooks
 
 from dptrainer import PrivacyArguments
-from dptrainer.hugging_face.trainer import DPTrainer
+from dptrainer.trainer import DPTrainer
 
 
 class TestPrepareModuleIntegration:
@@ -178,7 +178,7 @@ class TestHooksEnableDisable:
 class TestDPTrainerHooksIntegration:
     """Test DPTrainer correctly uses hooks-based mode."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_dptrainer_uses_wrap_model_false(
         self, mock_prepare_module, simple_model, small_dataset, training_args
     ):
@@ -201,7 +201,7 @@ class TestDPTrainerHooksIntegration:
         call_kwargs = mock_prepare_module.call_args[1]
         assert call_kwargs.get('wrap_model') is False
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_dptrainer_stores_hooks_reference(
         self, mock_prepare_module, simple_model, small_dataset, training_args
     ):
@@ -223,7 +223,7 @@ class TestDPTrainerHooksIntegration:
         assert hasattr(trainer, 'hooks')
         assert trainer.hooks is mock_hooks
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_detach_model_calls_cleanup(
         self, mock_prepare_module, simple_model, small_dataset, training_args
     ):
@@ -253,7 +253,7 @@ class TestDPTrainerHooksIntegration:
 class TestModelNotWrapped:
     """Test that the model is not wrapped in hooks-based mode."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_model_remains_original_type(
         self, mock_prepare_module, simple_model, small_dataset, training_args
     ):
@@ -278,7 +278,7 @@ class TestModelNotWrapped:
         # Model should not have _module attribute (sign of wrapping)
         assert not hasattr(trainer.model, '_module')
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_model_forward_works_directly(
         self, mock_prepare_module, simple_model, small_dataset, training_args
     ):
@@ -309,9 +309,9 @@ class TestModelNotWrapped:
 class TestGhostClippingHooks:
     """Test ghost clipping (fast gradient clipping) mode with hooks."""
 
-    @patch("dptrainer.hugging_face.trainer.set_loss_function")
-    @patch("dptrainer.hugging_face.trainer.DPLossFastGradientClipping")
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.set_loss_function")
+    @patch("dptrainer.trainer.DPLossFastGradientClipping")
+    @patch("dptrainer.trainer.prepare_module")
     def test_ghost_mode_uses_correct_hooks_class(
         self, mock_prepare_module, mock_dp_loss, mock_set_loss, simple_model, small_dataset, training_args
     ):

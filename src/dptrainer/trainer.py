@@ -15,7 +15,7 @@ from transformers import (
 from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 from dptrainer.utils import set_loss_function
 from dptrainer.privacy_arguments import PrivacyArguments
-from dptrainer.hugging_face.callback import DPCallback
+from dptrainer.callback import DPCallback
 
 logger = logging.get_logger(__name__)
 
