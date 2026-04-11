@@ -81,6 +81,8 @@ if __name__ == "__main__":
 
 Use `privatize_trainer` to add DP to any `Trainer`-based class, such as `Seq2SeqTrainer`:
 
+> **Note:** `privatize_trainer` only works on `Trainer` subclasses — it cannot be applied to `transformers.Trainer` itself. If you are using the base `Trainer`, use `DPTrainer` directly instead. See the [Causal LM Fine-Tuning](#end-to-end-causal-lm-fine-tuning) example above.
+
 ```python
 """docs/examples/privatize_seq2seq.py"""
 

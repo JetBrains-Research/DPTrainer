@@ -73,6 +73,8 @@ trainer = DPOTrainer(
 trainer.train()
 ```
 
+> **Limitation:** `privatize_trainer` can only be called on **subclasses** of `transformers.Trainer` — not on `Trainer` itself. Calling `privatize_trainer(Trainer)` raises a `ValueError` because `Trainer` does not have `Trainer` in its own inheritance chain, so there is nothing to swap. If you are using the base `Trainer` directly, use `DPTrainer` as a drop-in replacement instead (see [Basic Usage](#basic-usage-with-dptrainer) above).
+
 When ghost clipping is enabled (`grad_sample_mode="ghost"` in `PrivacyArguments`), `privatize_trainer` automatically inspects the patched class's MRO and warns if any intermediate class overrides `compute_loss` or `training_step` in a way that could bypass `DPTrainer`'s loss wrapping — so you get safety checks without manual auditing.
 
 For a complete runnable example — including dataset loading, preprocessing, and model saving — see [Privatizing a Third-Party Trainer](examples.md#privatizing-a-third-party-trainer) in the examples documentation.

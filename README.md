@@ -1,5 +1,6 @@
 # DPTrainer
 
+[![JetBrains Research](https://jb.gg/badges/research.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![CI](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml/badge.svg)](https://github.com/JetBrains-Research/DPTrainer/actions/workflows/ci.yaml)
 [![Python 3.11–3.12](https://img.shields.io/badge/python-3.11%E2%80%933.12-blue.svg)](https://www.python.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -102,7 +103,9 @@ trainer = DPOTrainer(
 trainer.train()
 ```
 
-> **Note:** `privatize_trainer` patches the trainer *class*, not a specific instance. It does not privatize the trainer itself — it injects DPTrainer into the class hierarchy so that all future instances of that class train with DP-SGD. Use it once at import time or before constructing trainer instances.
+> **Note:** `privatize_trainer` patches the trainer *class*, not a specific instance. It injects `DPTrainer` into the class hierarchy so that all future instances of that class train with DP-SGD. Use it once at import time or before constructing trainer instances.
+
+> **Limitation:** `privatize_trainer` works only on **subclasses** of `transformers.Trainer` (e.g., `Seq2SeqTrainer`, `DPOTrainer`, `SFTTrainer`). It cannot be called on `Trainer` itself — doing so raises a `ValueError`. If you want DP training with the base `Trainer`, use `DPTrainer` directly as shown in the [Quick Start](#quick-start--dptrainer-as-a-drop-in-replacement) section above.
 
 When ghost clipping is enabled, `privatize_trainer` automatically inspects the patched class's MRO and warns if any intermediate class overrides `compute_loss` or `training_step` in a way that could bypass DPTrainer's loss wrapping.
 
