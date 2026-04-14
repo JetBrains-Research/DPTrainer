@@ -1,6 +1,6 @@
 [project]
 name = "DPTrainer"
-version = "99.0.0"
+version = "0.1.0"
 description = "Differential privacy training utilities for PyTorch and Hugging Face Transformers, powered by Opacus."
 requires-python = ">=3.11,<3.13"
 readme = "README.md"
