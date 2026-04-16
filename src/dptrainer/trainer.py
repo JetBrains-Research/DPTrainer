@@ -4,7 +4,7 @@ from typing import Optional, Union, Callable
 
 import datasets
 import torch
-from opacus.grad_sample.utils import wrap_model_in_controller
+from opacus.grad_sample.utils import prepare_module
 from opacus.data_loader import DPDataLoader
 from opacus.optimizers import get_optimizer_class, AdaClipDPOptimizer
 from opacus.utils.batch_memory_manager import wrap_data_loader
@@ -15,7 +15,7 @@ from transformers import (
 from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 from dptrainer.utils import set_loss_function
 from dptrainer.privacy_arguments import PrivacyArguments
-from dptrainer.hugging_face.callback import DPCallback
+from dptrainer.callback import DPCallback
 
 logger = logging.get_logger(__name__)
 
@@ -74,18 +74,24 @@ class DPTrainer(Trainer):
 
         logger.info(f"Using privacy noise multiplier: {self.privacy_args.noise_multiplier}")
 
-        self.controller = wrap_model_in_controller(
+        # Remove existing hooks if present (e.g., when reusing models in tests)
+        if hasattr(model, "autograd_grad_sample_hooks"):
+            while model.autograd_grad_sample_hooks:
+                handle = model.autograd_grad_sample_hooks.pop()
+                handle.remove()
+            delattr(model, "autograd_grad_sample_hooks")
+
+        self.hooks = prepare_module(
             model,
             grad_sample_mode=self.privacy_args.grad_sample_mode,
+            wrap_model=False,
         )
 
         dp_callback = DPCallback(
             accountant=self.privacy_args.accountant,
             gradient_accumulation_steps=args.gradient_accumulation_steps,
             target_delta=self.privacy_args.target_delta,
-            target_alpha=self.privacy_args.target_alpha,
             max_epsilon=self.privacy_args.target_epsilon,
-            min_beta=self.privacy_args.target_beta,
         )
         callbacks = callbacks or []
         callbacks.append(dp_callback)
@@ -112,7 +118,7 @@ class DPTrainer(Trainer):
             criterion = self.model.loss_function
             if not hasattr(criterion, "reduction"):
                 setattr(criterion, "reduction", "mean")
-            criterion = DPLossFastGradientClipping(self.controller,
+            criterion = DPLossFastGradientClipping(self.hooks,
                                                    self.create_optimizer(),
                                                    criterion,
                                                    loss_reduction="mean")
@@ -193,7 +199,7 @@ class DPTrainer(Trainer):
         return data_loader
 
     def detach_model(self) -> nn.Module:
-        """Detach the model from the controller and return the model.
+        """Detach the model from the hooks and return the model.
 
         The method cleans up resources or connections associated with the private trainer
         and detaches the managed model for further usage, if needed.
@@ -201,6 +207,6 @@ class DPTrainer(Trainer):
         Returns:
             nn.Module: Detached model.
         """
-        self.controller.cleanup()
+        self.hooks.cleanup()
 
         return self.model

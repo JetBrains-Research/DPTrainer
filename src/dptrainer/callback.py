@@ -5,8 +5,6 @@ from opacus.accountants import create_accountant
 from opacus.optimizers import DPOptimizer
 from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
 from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
-from riskcal import CTDAccountant
-from riskcal.conversions import get_beta_from_pld, get_advantage_from_pld
 from transformers import TrainerCallback, TrainerControl, TrainingArguments, TrainerState
 from transformers.trainer_callback import ExportableState
 
@@ -24,26 +22,20 @@ class DPCallback(TrainerCallback, ExportableState):
         accountant: str,
         gradient_accumulation_steps: int,
         target_delta: float,
-        target_alpha: float,
         max_epsilon: float = None,
-        min_beta: float = None,
     ) -> None:
         """Initialize the DPCallback.
 
         Args:
-            accountant (str): The privacy accountant mechanism to use (e.g., "rdp", "ctd").
+            accountant (str): The privacy accountant mechanism to use (e.g., "rdp").
             gradient_accumulation_steps (int): Number of gradient accumulation steps.
             target_delta (float): Target delta for (epsilon, delta)-DP.
-            target_alpha (float): Target false positive rate for trade-off function accounting.
             max_epsilon (float): Maximum allowed epsilon before stopping training.
-            min_beta (float): Minimum allowed beta before stopping training.
         """
         self.accountant = create_accountant(accountant)
         self.gradient_accumulation_steps = gradient_accumulation_steps
         self.target_delta = target_delta
-        self.target_alpha = target_alpha
         self.max_epsilon = max_epsilon
-        self.min_beta = min_beta
         self._ghost_clipping_validated = False
 
     def get_optimizer_callback(self, sample_rate):
@@ -100,21 +92,13 @@ class DPCallback(TrainerCallback, ExportableState):
         """Compute current privacy metrics from the accountant.
 
         Returns:
-            dict: Dictionary containing privacy metrics (e.g., privacy_epsilon, privacy_beta, privacy_advantage).
+            dict: Dictionary containing privacy metrics (e.g., privacy_epsilon).
         """
         metrics = {}
-        if isinstance(self.accountant, CTDAccountant):
-            pld = self.accountant.get_pld(grid_step=0.01) if len(self.accountant.history) > 0 else None
-            if self.target_delta is not None:
-                metrics["privacy_epsilon"] = pld.get_epsilon_for_delta(delta=self.target_delta) if pld else 0.0
-            if self.target_alpha is not None:
-                metrics["privacy_beta"] = get_beta_from_pld(pld, self.target_alpha) if pld else 1.0
-            metrics["privacy_advantage"] = get_advantage_from_pld(pld) if pld else 0.0
-        else:
-            if self.target_delta is not None:
-                with warnings.catch_warnings(category=UserWarning, action="ignore"):
-                    metrics["privacy_epsilon"] = (self.accountant.get_epsilon(self.target_delta)
-                                                  if len(self.accountant.history) > 0 else 0.0)
+        if self.target_delta is not None:
+            with warnings.catch_warnings(category=UserWarning, action="ignore"):
+                metrics["privacy_epsilon"] = (self.accountant.get_epsilon(self.target_delta)
+                                              if len(self.accountant.history) > 0 else 0.0)
 
         return metrics
 
@@ -189,10 +173,6 @@ class DPCallback(TrainerCallback, ExportableState):
                            "Stopping training...")
             control.should_training_stop = True
 
-        if "privacy_beta" in metrics and self.min_beta is not None and metrics["privacy_beta"] < self.min_beta:
-            logger.warning(f"Min beta exceeded: {metrics['privacy_beta']} < {self.min_beta}. Stopping training...")
-            control.should_training_stop = True
-
         return control
 
     @property
@@ -215,10 +195,8 @@ class DPCallback(TrainerCallback, ExportableState):
             "args": {
                 "accountant": self.accountant.mechanism(),
                 "target_delta": self.target_delta,
-                "target_alpha": self.target_alpha,
                 "gradient_accumulation_steps": self.gradient_accumulation_steps,
                 "max_epsilon": self.max_epsilon,
-                "min_beta": self.min_beta,
             }, "attributes": {
                 "_accountant_state_dict": self._accountant_state_dict,
             }

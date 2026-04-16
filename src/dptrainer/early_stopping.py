@@ -1,5 +1,6 @@
 from transformers import EarlyStoppingCallback as HFEarlyStoppingCallback
 
+
 class EarlyStoppingCallback(HFEarlyStoppingCallback):
     """Checkpoint-aware early stopping callback.
 
