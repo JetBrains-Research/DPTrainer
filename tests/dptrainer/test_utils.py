@@ -5,15 +5,21 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 from transformers import Trainer
 
-from dptrainer.hugging_face.utils import privatize_trainer
-from dptrainer.hugging_face.utils.privatize_trainer import (
+try:
+    import trl
+    _has_trl = True
+except ImportError:
+    _has_trl = False
+
+from dptrainer import privatize_trainer
+from dptrainer.privatize_trainer import (
     _change_base_recursively,
     _warn_ghost_clipping_overrides,
 )
 
 from opacus.optimizers import DPOptimizer
 
-from dptrainer.hugging_face.trainer import DPTrainer
+from dptrainer.trainer import DPTrainer
 from dptrainer import PrivacyArguments
 
 
@@ -299,6 +305,7 @@ class TestWarnGhostClippingOverrides:
             ghost_warnings = [x for x in w if "ghost-clipping" in str(x.message)]
             assert len(ghost_warnings) == 0
 
+    @pytest.mark.skipif(not _has_trl, reason="trl not installed")
     def test_privatize_dpo_trainer_emits_warning_with_ghost_clipping(self):
         """Privatizing trl.DPOTrainer emits a warning when ghost clipping is enabled."""
         from trl import DPOTrainer
@@ -311,6 +318,7 @@ class TestWarnGhostClippingOverrides:
             assert len(ghost_warnings) >= 1
             assert any("compute_loss" in str(gw.message) for gw in ghost_warnings)
 
+    @pytest.mark.skipif(not _has_trl, reason="trl not installed")
     def test_privatize_dpo_trainer_no_warning_without_ghost_clipping(self):
         """Privatizing trl.DPOTrainer does NOT emit a warning without ghost clipping."""
         from trl import DPOTrainer
@@ -327,7 +335,7 @@ class TestValidateGhostClipping:
 
     def test_passes_for_non_ghost_clipping_optimizer(self):
         """No error when the optimizer is a regular DPOptimizer (not ghost clipping)."""
-        from dptrainer.hugging_face.callback import DPCallback
+        from dptrainer.callback import DPCallback
 
         optimizer = Mock(spec=DPOptimizer)
         model = Mock()
@@ -336,7 +344,7 @@ class TestValidateGhostClipping:
 
     def test_passes_when_loss_function_is_correct(self):
         """No error when ghost clipping optimizer and model has DPLossFastGradientClipping."""
-        from dptrainer.hugging_face.callback import DPCallback
+        from dptrainer.callback import DPCallback
         from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
         from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 
@@ -350,7 +358,7 @@ class TestValidateGhostClipping:
 
     def test_raises_when_loss_function_is_wrong(self):
         """RuntimeError when ghost clipping optimizer but loss_function is not wrapped."""
-        from dptrainer.hugging_face.callback import DPCallback
+        from dptrainer.callback import DPCallback
         from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
 
         optimizer = Mock(spec=DPOptimizerFastGradientClipping)
@@ -364,7 +372,7 @@ class TestValidateGhostClipping:
 
     def test_raises_when_loss_function_missing(self):
         """RuntimeError when ghost clipping optimizer but model has no loss_function."""
-        from dptrainer.hugging_face.callback import DPCallback
+        from dptrainer.callback import DPCallback
         from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
 
         optimizer = Mock(spec=DPOptimizerFastGradientClipping)
@@ -375,7 +383,7 @@ class TestValidateGhostClipping:
 
     def test_unwraps_model_with_module_attribute(self):
         """Correctly unwraps model._module.module to find loss_function."""
-        from dptrainer.hugging_face.callback import DPCallback
+        from dptrainer.callback import DPCallback
         from opacus.optimizers.optimizer_fast_gradient_clipping import DPOptimizerFastGradientClipping
         from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 

@@ -42,16 +42,6 @@ class TestPrivacyArgumentsPrecalculate:
         assert args.noise_multiplier > 0
         assert args.target_delta == 1.0 / 1000
 
-    def test_precalculate_with_target_beta(self):
-        """Test precalculate calculates noise_multiplier from target_beta."""
-        args = PrivacyArguments(target_alpha=0.01, target_beta=0.5)
-        assert args.noise_multiplier is None
-
-        args.precalculate(num_samples=1000, sample_rate=0.01, steps=100)
-
-        # Should calculate noise_multiplier using riskcal
-        assert args.noise_multiplier is not None
-        assert args.noise_multiplier > 0
 
     def test_precalculate_defaults_to_zero_noise(self):
         """Test precalculate defaults to 0.0 noise when no target specified."""

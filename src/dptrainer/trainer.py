@@ -15,7 +15,7 @@ from transformers import (
 from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 from dptrainer.utils import set_loss_function
 from dptrainer.privacy_arguments import PrivacyArguments
-from dptrainer.hugging_face.callback import DPCallback
+from dptrainer.callback import DPCallback
 
 logger = logging.get_logger(__name__)
 
@@ -84,9 +84,7 @@ class DPTrainer(Trainer):
             accountant=self.privacy_args.accountant,
             gradient_accumulation_steps=args.gradient_accumulation_steps,
             target_delta=self.privacy_args.target_delta,
-            target_alpha=self.privacy_args.target_alpha,
             max_epsilon=self.privacy_args.target_epsilon,
-            min_beta=self.privacy_args.target_beta,
         )
         callbacks = callbacks or []
         callbacks.append(dp_callback)

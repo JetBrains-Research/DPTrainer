@@ -6,13 +6,13 @@ import torch
 from torch.utils.data import IterableDataset
 
 from dptrainer import PrivacyArguments
-from dptrainer.hugging_face.trainer import DPTrainer
+from dptrainer.trainer import DPTrainer
 
 
 class TestDPTrainerInitialization:
     """Test DPTrainer initialization."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_success(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -33,7 +33,7 @@ class TestDPTrainerInitialization:
         assert trainer.hooks is mock_controller
         mock_wrap_model.assert_called_once()
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_without_privacy_args(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -46,7 +46,7 @@ class TestDPTrainerInitialization:
                 privacy_args=None,
             )
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_iterable_dataset_with_poisson(
         self, mock_wrap_model, simple_model, training_args
     ):
@@ -74,7 +74,7 @@ class TestDPTrainerInitialization:
                 privacy_args=privacy_args,
             )
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_expanded_weights_rejected(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -93,7 +93,7 @@ class TestDPTrainerInitialization:
                 privacy_args=privacy_args,
             )
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_enables_checkpoint_restoration(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -117,7 +117,7 @@ class TestDPTrainerInitialization:
 
         assert training_args.restore_callback_states_from_checkpoint is True
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_initialization_distributed_training_rejected(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -139,8 +139,8 @@ class TestDPTrainerInitialization:
 class TestDPTrainerCreateOptimizer:
     """Test optimizer creation."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
-    @patch("dptrainer.hugging_face.trainer.get_optimizer_class")
+    @patch("dptrainer.trainer.prepare_module")
+    @patch("dptrainer.trainer.get_optimizer_class")
     def test_create_optimizer_flat_clipping(
         self,
         mock_get_optimizer_class,
@@ -179,8 +179,8 @@ class TestDPTrainerCreateOptimizer:
         assert optimizer is not None
         assert isinstance(optimizer, DPOptimizer)
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
-    @patch("dptrainer.hugging_face.trainer.get_optimizer_class")
+    @patch("dptrainer.trainer.prepare_module")
+    @patch("dptrainer.trainer.get_optimizer_class")
     def test_create_optimizer_adaptive_clipping(
         self,
         mock_get_optimizer_class,
@@ -225,9 +225,9 @@ class TestDPTrainerCreateOptimizer:
 class TestDPTrainerGetTrainDataloader:
     """Test train dataloader creation."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
-    @patch("dptrainer.hugging_face.trainer.wrap_data_loader")
-    @patch("dptrainer.hugging_face.trainer.DPDataLoader")
+    @patch("dptrainer.trainer.prepare_module")
+    @patch("dptrainer.trainer.wrap_data_loader")
+    @patch("dptrainer.trainer.DPDataLoader")
     def test_get_train_dataloader_with_poisson(
         self,
         mock_dp_dataloader,
@@ -264,8 +264,8 @@ class TestDPTrainerGetTrainDataloader:
         mock_wrap_data_loader.assert_called_once()
         assert dataloader is mock_wrapped_loader
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
-    @patch("dptrainer.hugging_face.trainer.wrap_data_loader")
+    @patch("dptrainer.trainer.prepare_module")
+    @patch("dptrainer.trainer.wrap_data_loader")
     def test_get_train_dataloader_without_poisson(
         self,
         mock_wrap_data_loader,
@@ -300,7 +300,7 @@ class TestDPTrainerGetTrainDataloader:
 class TestDPTrainerDetachModel:
     """Test model detachment."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_detach_model(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
@@ -327,7 +327,7 @@ class TestDPTrainerDetachModel:
 class TestDPTrainerComputeMetrics:
     """Test privacy metrics integration."""
 
-    @patch("dptrainer.hugging_face.trainer.prepare_module")
+    @patch("dptrainer.trainer.prepare_module")
     def test_compute_metrics_integration(
         self, mock_wrap_model, simple_model, small_dataset, training_args
     ):
