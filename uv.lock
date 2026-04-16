@@ -214,7 +214,7 @@ requires-dist = [
     { name = "accelerate", specifier = ">=1.10.0" },
     { name = "datasets", specifier = ">=3.5" },
     { name = "numpy", specifier = ">=2.2" },
-    { name = "opacus", specifier = "==1.5.4.post12" },
+    { name = "opacus", specifier = "==1.5.4.post13" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "torch", specifier = ">=2.6" },
     { name = "transformers", specifier = ">=4.54.1" },
@@ -629,7 +629,7 @@ wheels = [
 
 [[package]]
 name = "opacus"
-version = "1.5.4.post12"
+version = "1.5.4.post13"
 source = { registry = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/simple" }
 dependencies = [
     { name = "numpy" },
@@ -637,9 +637,9 @@ dependencies = [
     { name = "scipy" },
     { name = "torch" },
 ]
-sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post12.tar.gz", hash = "sha256:469325805131529e45a6f2dd99082dd7a83f20888a514874946c1c70629c4258" }
+sdist = { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post13.tar.gz", hash = "sha256:c702cf15e8613d9efe262da2a7d549eaa0df733547b92ce23bb8083a18632ef2" }
 wheels = [
-    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post12-py3-none-any.whl", hash = "sha256:bbd97eb02ddea0e7a02f654fc5e5e91099a21c79a7031ddce5ca84e1ddb58663" },
+    { url = "https://europe-west4-python.pkg.dev/jetbrains-ml4se-fed/jbr-fed-python/opacus/opacus-1.5.4.post13-py3-none-any.whl", hash = "sha256:d8afdcce816e2e70a1a42a988ddd511b19a57e17932e6bbd83a6697201bd6fc5" },
 ]
 
 [[package]]
