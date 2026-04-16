@@ -74,6 +74,13 @@ class DPTrainer(Trainer):
 
         logger.info(f"Using privacy noise multiplier: {self.privacy_args.noise_multiplier}")
 
+        # Remove existing hooks if present (e.g., when reusing models in tests)
+        if hasattr(model, "autograd_grad_sample_hooks"):
+            while model.autograd_grad_sample_hooks:
+                handle = model.autograd_grad_sample_hooks.pop()
+                handle.remove()
+            delattr(model, "autograd_grad_sample_hooks")
+
         self.hooks = prepare_module(
             model,
             grad_sample_mode=self.privacy_args.grad_sample_mode,
