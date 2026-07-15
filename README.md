@@ -121,6 +121,7 @@ When ghost clipping is enabled, `privatize_trainer` automatically inspects the p
 | `poisson_sampling` | `True` | Use Poisson sub-sampling for privacy amplification. |
 | `grad_sample_mode` | `"hooks"` | Opacus grad sample mode (`"hooks"` or `"ew"`). Use `"ew"` for ghost clipping. |
 | `accountant` | `"rdp"` | Privacy accountant type (passed to Opacus). |
+| `epsilon_log_mode` | `"eval"` | When to log the expended privacy budget: `"none"`, `"train"`, `"eval"`, or `"both"`. |
 
 ## Docs
 

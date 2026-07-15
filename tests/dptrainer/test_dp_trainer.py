@@ -1,6 +1,6 @@
 """Tests for DPTrainer."""
 
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, call, patch, MagicMock
 import pytest
 import torch
 from torch.utils.data import IterableDataset
@@ -324,45 +324,85 @@ class TestDPTrainerDetachModel:
         assert detached_model is simple_model
 
 
-class TestDPTrainerComputeMetrics:
-    """Test privacy metrics integration."""
+class TestDPTrainerPrivacyLogging:
+    """Test privacy metrics logging behavior."""
 
-    @patch("dptrainer.trainer.prepare_module")
-    def test_compute_metrics_integration(
-        self, mock_wrap_model, simple_model, small_dataset, training_args
-    ):
-        """Test that privacy metrics are integrated into compute_metrics."""
-        mock_controller = Mock()
-        mock_wrap_model.return_value = mock_controller
+    def test_privacy_log_mode_defaults_to_eval(self):
+        assert PrivacyArguments().epsilon_log_mode == "eval"
 
-        custom_metrics_called = False
+    @patch("dptrainer.trainer.Trainer.log")
+    def test_log_privacy_metrics_on_train_only(self, mock_super_log):
+        trainer = DPTrainer.__new__(DPTrainer)
+        trainer.model = Mock(training=True)
+        trainer.dp_callback = Mock()
+        trainer.dp_callback.get_privacy_metrics.return_value = {"privacy_epsilon": 1.23}
+        trainer.privacy_args = PrivacyArguments(epsilon_log_mode="train")
 
-        def custom_compute_metrics(eval_pred, compute_result=True):
-            nonlocal custom_metrics_called
-            custom_metrics_called = True
-            return {"accuracy": 0.95}
+        logs = {}
 
-        privacy_args = PrivacyArguments(noise_multiplier=1.0)
+        DPTrainer.log(trainer, logs)
 
-        trainer = DPTrainer(
-            model=simple_model,
-            args=training_args,
-            train_dataset=small_dataset,
-            privacy_args=privacy_args,
-            compute_metrics=custom_compute_metrics,
-        )
+        assert logs == {"privacy_epsilon": 1.23}
+        mock_super_log.assert_called_once_with(logs, None)
 
-        # The compute_metrics function should be wrapped
-        assert trainer.compute_metrics is not None
+    @patch("dptrainer.trainer.Trainer.log")
+    def test_log_privacy_metrics_on_eval_only(self, mock_super_log):
+        trainer = DPTrainer.__new__(DPTrainer)
+        trainer.model = Mock(training=False)
+        trainer.dp_callback = Mock()
+        trainer.dp_callback.get_privacy_metrics.return_value = {"privacy_epsilon": 1.23}
+        trainer.privacy_args = PrivacyArguments(epsilon_log_mode="eval")
 
-        # Mock eval_pred
-        mock_eval_pred = Mock()
+        logs = {}
 
-        # Call the wrapped compute_metrics
-        result = trainer.compute_metrics(mock_eval_pred)
+        DPTrainer.log(trainer, logs)
 
-        # Should include both custom metrics and privacy metrics
-        assert "accuracy" in result
-        assert result["accuracy"] == 0.95
-        # Privacy metrics should be added (even if zero at start)
-        assert "privacy_epsilon" in result or "privacy_advantage" in result
+        assert logs == {"eval_privacy_epsilon": 1.23}
+        mock_super_log.assert_called_once_with(logs, None)
+
+    @patch("dptrainer.trainer.Trainer.log")
+    def test_log_privacy_metrics_uses_evaluation_metric_prefix(self, mock_super_log):
+        trainer = DPTrainer.__new__(DPTrainer)
+        trainer.model = Mock(training=False)
+        trainer.dp_callback = Mock()
+        trainer.dp_callback.get_privacy_metrics.return_value = {"privacy_epsilon": 1.23}
+        trainer.privacy_args = PrivacyArguments(epsilon_log_mode="eval")
+
+        validation_logs = {"validation_loss": 0.5}
+        DPTrainer.log(trainer, validation_logs)
+
+        dataset_logs = {"eval_test_loss": 0.5}
+        DPTrainer.log(trainer, dataset_logs)
+
+        runtime_logs = {"validation_runtime": 0.5}
+        DPTrainer.log(trainer, runtime_logs)
+
+        assert validation_logs == {"validation_loss": 0.5, "validation_privacy_epsilon": 1.23}
+        assert dataset_logs == {"eval_test_loss": 0.5, "eval_test_privacy_epsilon": 1.23}
+        assert runtime_logs == {"validation_runtime": 0.5, "validation_privacy_epsilon": 1.23}
+        mock_super_log.assert_has_calls([
+            call(validation_logs, None),
+            call(dataset_logs, None),
+            call(runtime_logs, None),
+        ])
+
+    @patch("dptrainer.trainer.Trainer.log")
+    def test_log_privacy_metrics_on_both(self, mock_super_log):
+        trainer = DPTrainer.__new__(DPTrainer)
+        trainer.model = Mock(training=True)
+        trainer.dp_callback = Mock()
+        trainer.dp_callback.get_privacy_metrics.return_value = {"privacy_epsilon": 1.23}
+        trainer.privacy_args = PrivacyArguments(epsilon_log_mode="both")
+
+        train_logs = {"random_metric": 0.5}
+        DPTrainer.log(trainer, train_logs)
+
+        assert train_logs == {"random_metric": 0.5, "privacy_epsilon": 1.23}
+
+        trainer.model.training = False
+        eval_logs = {"random_metric": 0.5}
+        DPTrainer.log(trainer, eval_logs)
+
+        assert eval_logs == {"random_metric": 0.5, "eval_privacy_epsilon": 1.23}
+        
+        mock_super_log.assert_has_calls([call(train_logs, None), call(eval_logs, None)])

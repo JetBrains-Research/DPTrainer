@@ -1,6 +1,6 @@
 import warnings
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Literal, Optional
 
 from opacus.accountants.utils import get_noise_multiplier
 from transformers import logging
@@ -25,6 +25,7 @@ class PrivacyArguments:
         noise_multiplier (Optional[float]): Noise multiplier for DP training.
         target_epsilon (Optional[float]): Target epsilon at end of training (mutually exclusive with noise multiplier).
         target_delta (Optional[float]): Target delta, defaults to 1/N.
+        epsilon_log_mode (Literal): When to log the expended privacy budget: "none", "train", "eval", or "both".
     """
     accountant: str = field(default="rdp", metadata={"help": "Accountant mechanism to use for DP training"})
     grad_sample_mode: str = field(default="hooks", metadata={"help": "Grad sample mode of Opacus"})
@@ -42,6 +43,14 @@ class PrivacyArguments:
     target_epsilon: Optional[float] = field(default=None, metadata={
         "help": "Target epsilon at end of training (mutually exclusive with noise multiplier)"})
     target_delta: Optional[float] = field(default=None, metadata={"help": "Target delta, defaults to 1/N"})
+    epsilon_log_mode: Literal["none", "train", "eval", "both"] = field(
+        default="eval",
+        metadata={"help": "When to log the expended privacy budget: 'none', 'train', 'eval', or 'both'"},
+    )
+
+    def __post_init__(self):
+        if self.epsilon_log_mode not in {"none", "train", "eval", "both"}:
+            raise ValueError("Invalid epsilon_log_mode. Must be one of 'none', 'train', 'eval', or 'both'.")
 
     @classmethod
     def low_privacy(cls):

@@ -14,6 +14,7 @@ All privacy-related parameters are configured through the `PrivacyArguments` dat
 | `clipping` | `"flat"` | Clipping strategy: `"flat"`, `"adaptive"`, or `"per_layer"` |
 | `poisson_sampling` | `True` | Use Poisson sub-sampling for privacy amplification |
 | `grad_sample_mode` | `"hooks"` | Opacus grad sample mode: `"hooks"` or `"ghost"` |
+| `epsilon_log_mode` | `"eval"` | When to log the expended privacy budget: `"none"`, `"train"`, `"eval"`, or `"both"` |
 
 ### Adaptive Clipping (AdaClip) Parameters
 
@@ -65,7 +66,7 @@ privacy_args = PrivacyArguments(
 
 `DPTrainer` automatically monitors the privacy budget during training. If a `target_epsilon` is set, training will stop early when the budget is exhausted. This is handled by the built-in `DPCallback`.
 
-Privacy metrics (`privacy_epsilon`) are logged alongside standard training metrics during evaluation.
+Privacy metrics (`privacy_epsilon`) can be logged during training, evaluation, or both via `epsilon_log_mode`.
 
 ## Clipping Strategies
 

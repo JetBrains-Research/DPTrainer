@@ -1,6 +1,6 @@
 import math
 import warnings
-from typing import Optional, Union, Callable
+from typing import Optional, Union
 
 import datasets
 import torch
@@ -10,7 +10,7 @@ from opacus.optimizers import get_optimizer_class, AdaClipDPOptimizer
 from opacus.utils.batch_memory_manager import wrap_data_loader
 from torch import nn
 from transformers import (
-    Trainer, logging, modeling_utils, TrainingArguments, PreTrainedModel, TrainerCallback
+    Trainer, logging, TrainingArguments, PreTrainedModel, TrainerCallback
 )
 from opacus.utils.fast_gradient_clipping_utils import DPLossFastGradientClipping
 from dptrainer.utils import set_loss_function
@@ -27,7 +27,6 @@ class DPTrainer(Trainer):
             args: TrainingArguments = None,
             train_dataset: Union[datasets.Dataset, torch.utils.data.Dataset] = None,
             privacy_args: PrivacyArguments = None,
-            compute_metrics: Optional[Callable] = None,
             callbacks: Optional[list[TrainerCallback]] = None,
             **kwargs
     ):
@@ -38,7 +37,6 @@ class DPTrainer(Trainer):
             args (TrainingArguments): Training arguments.
             train_dataset (Union[datasets.Dataset, torch.utils.data.Dataset]): Training dataset.
             privacy_args (PrivacyArguments): Privacy arguments for differential private training.
-            compute_metrics (Optional[Callable]): Custom evaluation metrics.
             callbacks (Optional[list[TrainerCallback]]): Training callbacks.
             **kwargs: Additional keyword arguments passed to Trainer.
         """
@@ -87,32 +85,19 @@ class DPTrainer(Trainer):
             wrap_model=False,
         )
 
-        dp_callback = DPCallback(
+        self.dp_callback = DPCallback(
             accountant=self.privacy_args.accountant,
             gradient_accumulation_steps=args.gradient_accumulation_steps,
             target_delta=self.privacy_args.target_delta,
             max_epsilon=self.privacy_args.target_epsilon,
         )
         callbacks = callbacks or []
-        callbacks.append(dp_callback)
+        callbacks.append(self.dp_callback)
 
-        def compute_privacy_metrics(*args, compute_result: bool = True, **kwargs):
-            if compute_metrics:
-                metrics = compute_metrics(*args, compute_result, **kwargs) or {}
-            else:
-                metrics = {}
-
-            if compute_result:
-                privacy_metrics = dp_callback.get_privacy_metrics()
-                metrics.update(privacy_metrics)
-
-            return metrics
-
-        super().__init__(model=model, args=args, train_dataset=train_dataset, callbacks=callbacks,
-                         compute_metrics=compute_privacy_metrics, **kwargs)
+        super().__init__(model=model, args=args, train_dataset=train_dataset, callbacks=callbacks, **kwargs)
 
         optimizer = self.create_optimizer()
-        optimizer.attach_step_hook(dp_callback.get_optimizer_callback(sample_rate=sample_rate))
+        optimizer.attach_step_hook(self.dp_callback.get_optimizer_callback(sample_rate=sample_rate))
 
         if self.privacy_args and self.privacy_args.grad_sample_mode == "ghost":
             criterion = self.model.loss_function
@@ -210,3 +195,25 @@ class DPTrainer(Trainer):
         self.hooks.cleanup()
 
         return self.model
+
+    def log(self, logs: dict[str, float], start_time: float | None = None) -> None:
+        mode = "train" if self.model.training else "eval"
+        log_mode = self.privacy_args.epsilon_log_mode
+        privacy_metrics = self.dp_callback.get_privacy_metrics()
+
+        if mode == "eval":
+            metric_prefix = next(
+                (
+                    key.removesuffix(suffix)
+                    for suffix in ("_loss", "_runtime")
+                    for key in logs
+                    if key.endswith(suffix)
+                ),
+                "eval",
+            )
+            privacy_metrics = {f"{metric_prefix}_{key}": val for key, val in privacy_metrics.items()}
+
+        if log_mode == "both" or log_mode == mode:
+            logs.update(privacy_metrics)
+
+        super().log(logs, start_time)
