@@ -202,7 +202,16 @@ class DPTrainer(Trainer):
         privacy_metrics = self.dp_callback.get_privacy_metrics()
 
         if mode == "eval":
-            privacy_metrics = {f"eval_{key}": val for key, val in privacy_metrics.items()}
+            metric_prefix = next(
+                (
+                    key.removesuffix(suffix)
+                    for suffix in ("_loss", "_runtime")
+                    for key in logs
+                    if key.endswith(suffix)
+                ),
+                "eval",
+            )
+            privacy_metrics = {f"{metric_prefix}_{key}": val for key, val in privacy_metrics.items()}
 
         if log_mode == "both" or log_mode == mode:
             logs.update(privacy_metrics)

@@ -327,6 +327,9 @@ class TestDPTrainerDetachModel:
 class TestDPTrainerPrivacyLogging:
     """Test privacy metrics logging behavior."""
 
+    def test_privacy_log_mode_defaults_to_eval(self):
+        assert PrivacyArguments().epsilon_log_mode == "eval"
+
     @patch("dptrainer.trainer.Trainer.log")
     def test_log_privacy_metrics_on_train_only(self, mock_super_log):
         trainer = DPTrainer.__new__(DPTrainer)
@@ -356,6 +359,32 @@ class TestDPTrainerPrivacyLogging:
 
         assert logs == {"eval_privacy_epsilon": 1.23}
         mock_super_log.assert_called_once_with(logs, None)
+
+    @patch("dptrainer.trainer.Trainer.log")
+    def test_log_privacy_metrics_uses_evaluation_metric_prefix(self, mock_super_log):
+        trainer = DPTrainer.__new__(DPTrainer)
+        trainer.model = Mock(training=False)
+        trainer.dp_callback = Mock()
+        trainer.dp_callback.get_privacy_metrics.return_value = {"privacy_epsilon": 1.23}
+        trainer.privacy_args = PrivacyArguments(epsilon_log_mode="eval")
+
+        validation_logs = {"validation_loss": 0.5}
+        DPTrainer.log(trainer, validation_logs)
+
+        dataset_logs = {"eval_test_loss": 0.5}
+        DPTrainer.log(trainer, dataset_logs)
+
+        runtime_logs = {"validation_runtime": 0.5}
+        DPTrainer.log(trainer, runtime_logs)
+
+        assert validation_logs == {"validation_loss": 0.5, "validation_privacy_epsilon": 1.23}
+        assert dataset_logs == {"eval_test_loss": 0.5, "eval_test_privacy_epsilon": 1.23}
+        assert runtime_logs == {"validation_runtime": 0.5, "validation_privacy_epsilon": 1.23}
+        mock_super_log.assert_has_calls([
+            call(validation_logs, None),
+            call(dataset_logs, None),
+            call(runtime_logs, None),
+        ])
 
     @patch("dptrainer.trainer.Trainer.log")
     def test_log_privacy_metrics_on_both(self, mock_super_log):

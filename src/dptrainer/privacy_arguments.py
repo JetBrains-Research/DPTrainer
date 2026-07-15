@@ -44,7 +44,7 @@ class PrivacyArguments:
         "help": "Target epsilon at end of training (mutually exclusive with noise multiplier)"})
     target_delta: Optional[float] = field(default=None, metadata={"help": "Target delta, defaults to 1/N"})
     epsilon_log_mode: Literal["none", "train", "eval", "both"] = field(
-        default="both",
+        default="eval",
         metadata={"help": "When to log the expended privacy budget: 'none', 'train', 'eval', or 'both'"},
     )
 
