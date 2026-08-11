@@ -73,18 +73,5 @@ jobs:
         run: |
           uv run --with ./dist/*.whl --no-project -- uv pip check
 
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
-          token_format: access_token
-          access_token_lifetime: 3600s
-
-      - name: Publish artifacts with Twine
-        env:
-          UV_PUBLISH_USERNAME: "oauth2accesstoken"
-          UV_PUBLISH_PASSWORD: ${{ steps.auth.outputs.access_token }}
-        run: |
-          uv publish --index jbr-fed-python ./dist/* --verbose
+      - name: Publish artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
